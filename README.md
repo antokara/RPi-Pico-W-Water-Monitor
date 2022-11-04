@@ -34,6 +34,10 @@ Until PlatformIO properly [supports pico w](https://github.com/platformio/platfo
 
 1. [install](https://developer.fedoraproject.org/start/hw/arduino/about.html)
 1. [follow guide for library installation](https://dawidchyrzynski.github.io/arduino-home-assistant/documents/getting-started/installation.html#arduino-ide)
+1. [follow guide for board installation](https://arduino-pico.readthedocs.io/en/latest/install.html#installing-via-arduino-boards-manager)
+1. `tools` -> `Board` -> `Raspberry Pi RP2040 Boards(ver.)` -> `Raspberry PI Pico W`
+1. `tools` -> `Flash size` -> `2MB (no FS)` _since we won't be using any file system_
+1. `tools` -> `WiFi Region`-> `USA`
 
 ### VS Code
 
