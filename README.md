@@ -22,9 +22,20 @@ A Home Assistant monitor for water flow and pressure for leaks, with an optional
     folder: mosquitto
 ```
 
+*Note that without a proper certificate, we can't enable the secure ports and we will have to enable and use the insecure 1883, 1884 ports.
+
 #### Mosquitto User
 
-go to HA user management and create a dedicated user (not admin), that will be used by Mosquitto.
+go to HA user management and create a dedicated user, that will be used by our Mosquitto client.
+
+Warning:
+
+- changing the password, because it caches the credentials, requires:
+  - reload the Mosquitto broker integration first
+  - restart of the *Mosquitto broker* addon second
+- certain special characters are not allowed (ie. the underscore is safe to use) and perhaps even very long passwords as well
+- the user should not be an admin
+- the user should only have access from local network
 
 ### IDE
 
@@ -53,7 +64,7 @@ Until PlatformIO properly [supports pico w](https://github.com/platformio/platfo
 
 ### VS Code
 
-1. TODO when support gets added
+1. TODO when support gets added [see here](https://arduino-pico.readthedocs.io/en/latest/platformio.html#current-state-of-development)
 1. [install the PlatformIO extension](https://platformio.org/platformio-ide)
 
 ## troubleshooting
