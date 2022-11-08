@@ -32,17 +32,29 @@ Until PlatformIO properly [supports pico w](https://github.com/platformio/platfo
 
 ### Arduino IDE
 
-1. [install](https://developer.fedoraproject.org/start/hw/arduino/about.html)
+1. [download, extract and run the Linux zip](https://www.arduino.cc/en/software) (do not use the flatpak/snap it has issues with serial ports)
 1. [follow guide for library installation](https://dawidchyrzynski.github.io/arduino-home-assistant/documents/getting-started/installation.html#arduino-ide)
 1. [follow guide for board installation](https://arduino-pico.readthedocs.io/en/latest/install.html#installing-via-arduino-boards-manager)
 1. `tools` -> `Board` -> `Raspberry Pi RP2040 Boards(ver.)` -> `Raspberry PI Pico W`
 1. `tools` -> `Flash size` -> `2MB (no FS)` _since we won't be using any file system_
 1. `tools` -> `WiFi Region`-> `USA`
+1. very important, to enable auto-reset after the first upload/boot
+    1. `sudo usermod -a -G dialout "$USER"`
+    1. reboot
+    1. `groups` should now list `dialout`
+1. hold the BOOTSEL button down while plugging in the Pico to your computer [(more info)](https://arduino-pico.readthedocs.io/en/latest/install.html#uploading-sketches)
+1. connect the board with the USB cable
+1. `tools` -> `Port` -> `UF2 Board`
+1. `tools` -> `USB Stack` -> `Pico SDK` [(more info)](https://arduino-pico.readthedocs.io/en/latest/usb.html)
+1. `tools` -> `Get Board Info` (should not error and return at least the `BN: Raspberry Pi Pico W`)
+1. at this point, the sketch example Blink, should compile, upload and make the connected device blink
+1. after first upload+boot, the port should automatically change. If not: `tools` -> `Port` -> `ttyAMC0`
+    1. if you need to manually reset the port: `sudo stty -F /dev/ttyACM0 1200` and then select the port again
 
 ### VS Code
 
-1. [install the PlatformIO extension](https://platformio.org/platformio-ide)
 1. TODO when support gets added
+1. [install the PlatformIO extension](https://platformio.org/platformio-ide)
 
 ## troubleshooting
 
