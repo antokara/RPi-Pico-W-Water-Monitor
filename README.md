@@ -41,7 +41,7 @@ Until PlatformIO properly [supports pico w](https://github.com/platformio/platfo
 1. very important, to enable auto-reset after the first upload/boot
     1. `sudo usermod -a -G dialout "$USER"`
     1. reboot
-    1. `groups` should now list `dialout`
+    1. `groups` should now list `dialout` [(more info)](https://support.arduino.cc/hc/en-us/articles/360016495679-Fix-port-access-on-Linux)
 1. hold the BOOTSEL button down while plugging in the Pico to your computer [(more info)](https://arduino-pico.readthedocs.io/en/latest/install.html#uploading-sketches)
 1. connect the board with the USB cable
 1. `tools` -> `Port` -> `UF2 Board`
