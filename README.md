@@ -33,6 +33,8 @@ Warning:
 - changing the password, because it caches the credentials, requires:
   - reload the Mosquitto broker integration first
   - restart of the *Mosquitto broker* addon second
+  - otherwise you will get `Connection error: Connection Refused: not authorised. Error: The connection was refused.`
+  - if you get only `Error: Connection refused` it means the port you try to use is not open (probably due to certificate issues), it does not mean the credentials are not correct
 - certain special characters are not allowed (ie. the underscore is safe to use) and perhaps even very long passwords as well
 - the user should not be an admin
 - the user should only have access from local network
