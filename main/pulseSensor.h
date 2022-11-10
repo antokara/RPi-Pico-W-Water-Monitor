@@ -33,10 +33,10 @@
 // in order to be considered an actual change/motion
 // (true, when greater than)
 //
-// 2 is sensitive enough, with the IR_COUNTS_THRESHOLD
+// 2 is sensitive enough, with the IR_COUNTS_THRESHOLD (in zuno)
 // to not produce false positive flow but
 // it can produce false negative flow.
-#define IR_DELTA_THRESHOLD 2
+#define IR_DELTA_THRESHOLD 10
 
 // time in milliseconds that a delta lasts
 //
