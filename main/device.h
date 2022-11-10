@@ -5,6 +5,12 @@
 #define DEVICE_NAME "Water Monitor Test"
 #define FIRMWARE_VERSION "1.0.0"
 
+/**
+ * @brief time in milliseconds to wait for the WiFi to connect
+ *
+ */
+#define WAIT_FOR_WIFI 3000
+
 class Device
 {
 public:

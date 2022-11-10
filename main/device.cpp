@@ -25,6 +25,9 @@ HAMqtt mqtt(client, device);
  */
 HASensor statusSensor("status");
 
+// flag to keep track of the first loop
+bool firstLoop = true;
+
 void Device::connectToWifi()
 {
     // get our WiFi's mac address
@@ -38,7 +41,7 @@ void Device::connectToWifi()
         Serial.println(WIFI_SSID);
         wifiStatus = WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
         // wait to connect...
-        delay(5000);
+        delay(WAIT_FOR_WIFI);
     }
 
     Serial.print("Connected to: ");
@@ -70,7 +73,6 @@ void Device::connectoMQTT()
     if (mqtt.begin(BROKER_ADDR, BROKER_PORT, BROKER_USERNAME, BROKER_PASSWORD) == true)
     {
         Serial.print("Connected to MQTT broker");
-        statusSensor.setValue("ok");
     }
     else
     {
@@ -84,8 +86,9 @@ void Device::connectoMQTT()
  */
 void Device::setup()
 {
+    // TODO: use DEBUG to disable
     Serial.begin(9600);
-    delay(1000); // Give the serial terminal a chance to connect, if present
+    delay(500); // Give the serial terminal a chance to connect, if present
 
     Device::connectToWifi();
 
@@ -93,9 +96,15 @@ void Device::setup()
     device.setName(DEVICE_NAME);
     device.setSoftwareVersion(FIRMWARE_VERSION);
 
+    // enable MQTT LWT feature. If device will lose connection
+    // to the broker, all device types related to it will be marked as offline in
+    // the Home Assistant Panel.
+    device.enableLastWill();
+
     // set the status sensor details
     statusSensor.setName("Status");
     statusSensor.setIcon("mdi:check-circle");
+    statusSensor.setForceUpdate(true);
 }
 
 /**
@@ -105,5 +114,12 @@ void Device::setup()
 void Device::loop()
 {
     mqtt.loop();
+
+    // only on the first loop...
+    if (firstLoop)
+    {
+        firstLoop = false;
+        statusSensor.setValue("connected");
+    }
     // TODO: check WiFi and reconnect if dropped;; TEST it
 }

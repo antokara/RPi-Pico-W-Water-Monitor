@@ -25,7 +25,7 @@ unsigned long lastPulseTime = 0;
 
 // time passed between previous pulse and the current one
 // TODO: rename last/prev/current to clear things up
-unsigned int prevTimePassedSinceLastPulse = 0;
+unsigned long prevTimePassedSinceLastPulse = 0;
 
 // current gallons per minute
 float gpm = 0.0;
@@ -202,13 +202,14 @@ void PulseSensor::updateIrSensorActive()
 
 /**
  * @brief if the time passed is negative (ie. due to overflow) or
- * if the lastPulseTime is zero (initial pulse), it will return the flowTimeout,
+ * if actual=false and the lastPulseTime is zero (initial pulse) or timePassed <= 0, it will return the flowTimeout,
  * to indicate the lowest possible flow, since we need 2 pulses at least, to calculate the actual flow.
  *
  * @see https://www.arduino.cc/reference/en/language/functions/time/millis/
+ * @param actual optional. defaults to false. if true, it will never return the flowTimeout.
  * @return milliseconds since the last pulse
  */
-unsigned long PulseSensor::timePassedSinceLastPulse()
+unsigned long PulseSensor::timePassedSinceLastPulse(bool actual = false)
 {
     if (lastPulseTime > 0)
     {
@@ -218,6 +219,12 @@ unsigned long PulseSensor::timePassedSinceLastPulse()
             return timePassed;
         }
     }
+
+    if (actual)
+    {
+        return 0;
+    }
+
     return flowTimeout;
 }
 
@@ -328,18 +335,10 @@ void PulseSensor::loop()
         PulseSensor::updateGPM();
         if (gpm < MIN_GPM)
         {
-            Serial.print("gpm too low A ");
-            Serial.println(gpm);
-
             // when there's pulse but too much time has passed since the last pulse
             // make sure we set a minimum flow.
             // This can happen when water starts flowing after a long period (pulse timeout)
             PulseSensor::updateGPM(MIN_GPM);
-        }
-        else
-        {
-            Serial.print("gpm start from pulse ");
-            Serial.println(gpm);
         }
 
         PulseSensor::sendGPM(true);
@@ -355,8 +354,7 @@ void PulseSensor::loop()
     else if (isIrSensorActive)
     {
         const float prevGPM = gpm;
-
-        if (PulseSensor::timePassedSinceLastPulse() > prevTimePassedSinceLastPulse)
+        if (PulseSensor::timePassedSinceLastPulse(true) > prevTimePassedSinceLastPulse)
         {
             // when the time that has passed since the last pulse
             // is greater than the time that had passed since the previous to last one and
@@ -369,9 +367,6 @@ void PulseSensor::loop()
 
         if (gpm < MIN_GPM)
         {
-            Serial.print("gpm too low B ");
-            Serial.println(gpm);
-
             // when there's no pulse but there's flow (the IR sensor is active) and
             // when the GPM has been set to zero because too much time has passed since the last pulse
             // make sure we set a minimum flow.

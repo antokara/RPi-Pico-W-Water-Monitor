@@ -77,7 +77,7 @@ public:
     static void checkGallonsCounter();
     static void increaseGallonsCounter();
     static void updateIrSensorActive();
-    static unsigned long timePassedSinceLastPulse();
+    static unsigned long timePassedSinceLastPulse(bool actual);
     static void updateGPM();
     static void updateGPM(float newValue);
     static void sendGPM(bool force);
