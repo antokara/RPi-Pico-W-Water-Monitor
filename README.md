@@ -71,6 +71,10 @@ Until PlatformIO properly [supports pico w](https://github.com/platformio/platfo
 
 ## troubleshooting
 
+### clear arduino compile cache
+
+`rm /tmp/arduino* -rf`
+
 ## references
 
 1. [Raspberry Pi Pico W Home Assistant Starter Project Using arduino-pico](https://github.com/daniloc/PicoW_HomeAssistant_Starter)
