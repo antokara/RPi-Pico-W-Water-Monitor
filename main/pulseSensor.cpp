@@ -56,7 +56,8 @@ unsigned int irCounts = 0;
 bool isIrSensorActive = false;
 
 // gallons to increase the water meter by
-long gallonsCounter = 0;
+// defaults to -1 in order to send 0 at boot, in case it rebooted while last sent a value > 0
+long gallonsCounter = -1;
 
 // buffer for  the gallons to increase the water meter by.
 // this is the internal counter, before we update and send the new value to the controller.
