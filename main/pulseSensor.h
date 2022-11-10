@@ -63,6 +63,13 @@
 // number of pulses per gallon (Pulse/Gallon)
 #define PULSE_RATE 1.0
 
+/**
+ * @brief frequency in milliseconds, to debounce the pulses.
+ * in case the pulse switch toggles too fast for some reason within the defined
+ * period, it will be ignored.
+ */
+#define PULSE_DEBOUNCE_FREQUENCY 250
+
 class PulseSensor
 {
 public:

@@ -51,6 +51,10 @@ Until PlatformIO properly [supports pico w](https://github.com/platformio/platfo
 1. `tools` -> `Board` -> `Raspberry Pi RP2040 Boards(ver.)` -> `Raspberry PI Pico W`
 1. `tools` -> `Flash size` -> `2MB (no FS)` _since we won't be using any file system_
 1. `tools` -> `WiFi Region`-> `USA`
+1. disable WiFi debug output:
+    1. `tools` -> `Debug Level`-> `None`
+    1. `tools` -> `Debug Port`-> `Disabled`
+    1. note that these changes require a re-upload to take effect
 1. very important, to enable auto-reset after the first upload/boot
     1. `sudo usermod -a -G dialout "$USER"`
     1. reboot

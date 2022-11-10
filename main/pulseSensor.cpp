@@ -46,7 +46,7 @@ unsigned long lastIrTime = 0;
 unsigned long fistIrTime = 0;
 
 // previous infrared value we had (since the last delta)
-int prevIrValue = 0;
+int prevIrValue = -1;
 
 // number of delta counts that are happening, within the timeout period
 // @see IR_COUNTS_THRESHOLD
@@ -148,7 +148,7 @@ void PulseSensor::updateIrSensorActive()
 {
     int irSensorValue = analogRead(IR_SENSOR_PIN); // read the input pin
     // only when the value has changed
-    if (prevIrValue == 0)
+    if (prevIrValue == -1)
     {
         // during initial run, just set the previous value to the current one
         // isIrSensorActive should already be set to false
@@ -158,8 +158,8 @@ void PulseSensor::updateIrSensorActive()
     }
     else if (abs(irSensorValue - prevIrValue) > IR_DELTA_THRESHOLD)
     {
-        Serial.print("IR > delta: ");
-        Serial.println(irSensorValue);
+        // Serial.print("IR > delta: ");
+        // Serial.println(irSensorValue);
         // when the delta is greater than the threshold
         // update the the last time we had a delta
         lastIrTime = millis();
@@ -269,12 +269,13 @@ bool PulseSensor::isPulseSensorActive()
     if (digitalRead(PULSE_SENSOR_PIN) == LOW)
     {
         // when the sensor is in active state
-        if (!lastPulseSensorIsActive)
+        if (!lastPulseSensorIsActive && abs(long(millis() - lastPulseTime)) > PULSE_DEBOUNCE_FREQUENCY)
         {
             // and it just turned active
             lastPulseSensorIsActive = true;
 
             // only the first time, return true
+            Serial.println("lastPulseSensorIsActive true");
             return lastPulseSensorIsActive;
         }
     }
@@ -282,6 +283,7 @@ bool PulseSensor::isPulseSensorActive()
     {
         // it just turned inactive
         lastPulseSensorIsActive = false;
+        Serial.println("lastPulseSensorIsActive false");
     }
 
     // any other time, return inactive
@@ -326,10 +328,18 @@ void PulseSensor::loop()
         PulseSensor::updateGPM();
         if (gpm < MIN_GPM)
         {
+            Serial.print("gpm too low A ");
+            Serial.println(gpm);
+
             // when there's pulse but too much time has passed since the last pulse
             // make sure we set a minimum flow.
             // This can happen when water starts flowing after a long period (pulse timeout)
             PulseSensor::updateGPM(MIN_GPM);
+        }
+        else
+        {
+            Serial.print("gpm start from pulse ");
+            Serial.println(gpm);
         }
 
         PulseSensor::sendGPM(true);
@@ -359,6 +369,9 @@ void PulseSensor::loop()
 
         if (gpm < MIN_GPM)
         {
+            Serial.print("gpm too low B ");
+            Serial.println(gpm);
+
             // when there's no pulse but there's flow (the IR sensor is active) and
             // when the GPM has been set to zero because too much time has passed since the last pulse
             // make sure we set a minimum flow.
@@ -386,6 +399,8 @@ void PulseSensor::loop()
         PulseSensor::updateGPM(0.0);
         PulseSensor::sendGPM(true);
         digitalWrite(LED_BUILTIN, LOW);
+
+        Serial.println("gpm stop - no pulse or flow");
     }
 
     // after all other checks have taken place and
