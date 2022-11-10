@@ -14,6 +14,7 @@
 
 // the (digital) pin that we need to connect the water meter pulse switch.
 // the other end, needs to go the ground (GND) pin
+// you may use D0-D22 which correlates to GP0-GP22
 #define PULSE_SENSOR_PIN D2
 
 // the (analog) pin that we connect to the
