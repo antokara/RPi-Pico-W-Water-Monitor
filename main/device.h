@@ -8,10 +8,10 @@
 class Device
 {
 public:
-    static void setup();
-    static void loop();
     static void connectoMQTT();
     static void connectToWifi();
+    static void setup();
+    static void loop();
 };
 
 #endif // DEVICE

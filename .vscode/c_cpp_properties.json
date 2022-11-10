@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "name": "Z-Uno2",
+            "includePath": [
+                "/home/user/Projects/z-uno-water-monitor/Z-Uno2/hardware/cores/**",
+                "/home/user/Projects/z-uno-water-monitor/Z-Uno2/hardware/libraries/**",
+                "/home/user/Projects/z-uno-water-monitor/Z-Uno2/tools/gcc/lib/gcc/arm-none-eabi/7.2.1/include/**",
+                "/home/user/Projects/z-uno-water-monitor/Z-Uno2/tools/inc/**"
+            ],
+            "forcedInclude": [
+                "/home/user/Projects/z-uno-water-monitor/Z-Uno2/hardware/cores/includes/Arduino.h"
+            ],
+            "intelliSenseMode": "gcc-arm",
+            "compilerPath": "/home/user/Projects/z-uno-water-monitor/Z-Uno2/tools/gcc/bin/arm-none-eabi-gcc"
+        }
+    ],
+    "version": 4
+}

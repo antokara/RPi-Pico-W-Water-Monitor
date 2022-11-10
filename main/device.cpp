@@ -19,6 +19,12 @@ WiFiClient client;
 HADevice device(DEVICE_ID);
 HAMqtt mqtt(client, device);
 
+/**
+ * @brief a status string sensor
+ * for the general status/health of the device
+ */
+HASensor statusSensor("status");
+
 void Device::connectToWifi()
 {
     // get our WiFi's mac address
@@ -64,6 +70,7 @@ void Device::connectoMQTT()
     if (mqtt.begin(BROKER_ADDR, BROKER_PORT, BROKER_USERNAME, BROKER_PASSWORD) == true)
     {
         Serial.print("Connected to MQTT broker");
+        statusSensor.setValue("ok");
     }
     else
     {
@@ -85,6 +92,10 @@ void Device::setup()
     // set device's details
     device.setName(DEVICE_NAME);
     device.setSoftwareVersion(FIRMWARE_VERSION);
+
+    // set the status sensor details
+    statusSensor.setName("Status");
+    statusSensor.setIcon("mdi:check-circle");
 }
 
 /**
