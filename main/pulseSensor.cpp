@@ -33,6 +33,9 @@ float gpm = 0.0;
 // last flow GPM value we sent (to avoid let's say sending 0.0 twice in a row)
 float lastGpmSent = 0.0;
 
+// last time we sent the gpm
+unsigned long lastGpmSendTime = 0;
+
 // time that must pass without a pulse, in order to be considered no-flow
 unsigned int flowTimeout = 0;
 
@@ -231,15 +234,18 @@ void PulseSensor::updateGPM(float newValue)
 }
 
 /**
- * @brief sends the water flow GPS to the controller
+ * @brief sends the water flow GPS to the controller,
+ * if the previously sent value is different than the current and
+ * if enough time has passed since last time we sent or if force is true.
  *
- * It only sends if there is a new value, since the last time sent it.
+ * @param force optional. defaults to false. if true, it will ignore the frequency and send the value immediately
  */
-void PulseSensor::sendGPM()
+void PulseSensor::sendGPM(bool force = false)
 {
-    if (lastGpmSent != gpm)
+    if (lastGpmSent != gpm && (abs(long(millis() - lastGpmSendTime)) > SEND_GPM_FREQUENCY || force))
     {
         lastGpmSent = gpm;
+        lastGpmSendTime = millis();
         gpmSensor.setValue(gpm);
     }
 }
@@ -320,7 +326,7 @@ void PulseSensor::loop()
             PulseSensor::updateGPM(MIN_GPM);
         }
 
-        PulseSensor::sendGPM();
+        PulseSensor::sendGPM(true);
         digitalWrite(LED_BUILTIN, HIGH);
         PulseSensor::increaseGallonsCounter();
 
@@ -359,16 +365,20 @@ void PulseSensor::loop()
         {
             // turn on the LED, when we just set the gpm > 0 from 0
             digitalWrite(LED_BUILTIN, HIGH);
+            PulseSensor::sendGPM(true);
         }
-
-        PulseSensor::sendGPM();
+        else
+        {
+            // existing flow
+            PulseSensor::sendGPM();
+        }
     }
     else if (gpm > 0.0)
     {
         // no pulse or flow (the IR sensor is inactive) but there's residual GPM
         // reset everything to 0
         PulseSensor::updateGPM(0.0);
-        PulseSensor::sendGPM();
+        PulseSensor::sendGPM(true);
         digitalWrite(LED_BUILTIN, LOW);
     }
 

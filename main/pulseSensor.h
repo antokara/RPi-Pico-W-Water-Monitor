@@ -10,7 +10,14 @@
  */
 #define SEND_GALLONS_COUNTER_FREQUENCY 300000
 
-// #define SEND_GPM_FREQUENCY 1000
+/**
+ * @brief frequency in milliseconds,
+ * to allow sending of water flow GPM to the controller
+ * when there is a change in the existing flow.
+ *
+ * this frequency does not apply to flow start/stop events.
+ */
+#define SEND_GPM_FREQUENCY 1000
 
 // the (digital) pin that we need to connect the water meter pulse switch.
 // the other end, needs to go the ground (GND) pin
@@ -69,7 +76,7 @@ public:
     static unsigned long timePassedSinceLastPulse();
     static void updateGPM();
     static void updateGPM(float newValue);
-    static void sendGPM();
+    static void sendGPM(bool force);
     static bool isPulseSensorActive();
     static void setup();
     static void loop();
