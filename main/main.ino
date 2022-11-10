@@ -13,6 +13,7 @@
 void setup()
 {
     Device::setup();
+    PulseSensor::setup();
     Led::setup();
 
     // psiSensor.setName("Water Pressure");
@@ -25,4 +26,5 @@ void setup()
 void loop()
 {
     Device::loop();
+    PulseSensor::loop();
 }
