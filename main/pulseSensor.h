@@ -60,9 +60,6 @@
 // 60000msecs = 60secs = 1minute rate for GPM
 #define TARGET_RATE_TIME 60000.0
 
-// frequency to update the flow, in milliseconds (between pulse and timeout only)
-#define UPDATE_FLOW_FREQUENCY 2500
-
 // number of pulses per gallon (Pulse/Gallon)
 #define PULSE_RATE 1.0
 
