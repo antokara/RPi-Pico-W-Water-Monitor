@@ -165,6 +165,8 @@ void PulseSensor::updateIrSensorActive()
         // update the the last time we had a delta
         lastIrTime = millis();
 
+        int delta = abs(irSensorValue - prevIrValue);
+
         // keep the last value
         prevIrValue = irSensorValue;
 
@@ -187,12 +189,15 @@ void PulseSensor::updateIrSensorActive()
         {
             // mark our IR sensor as active
             isIrSensorActive = true;
+
+            Serial.print("IR true with delta: ");
+            Serial.println(delta);
         }
     }
     else if (isIrSensorActive && abs(long(millis() - lastIrTime)) > IR_TIMEOUT)
     {
-        Serial.print("IR false: ");
-        Serial.println(irSensorValue);
+        Serial.print("IR false with delta: ");
+        Serial.println(abs(irSensorValue - prevIrValue));
         // when the delta is less than the threshold and
         // the timeout period has passed, only then,
         // mark the sensor as inactive.

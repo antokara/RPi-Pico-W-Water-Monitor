@@ -86,6 +86,9 @@ void Device::connectoMQTT()
  */
 void Device::setup()
 {
+    // @see https://arduino-pico.readthedocs.io/en/latest/analog.html#void-analogreadresolution-int-bits
+    analogReadResolution(ANALOG_READ_RESOLUTION);
+
     // TODO: use DEBUG to disable
     Serial.begin(9600);
     delay(500); // Give the serial terminal a chance to connect, if present

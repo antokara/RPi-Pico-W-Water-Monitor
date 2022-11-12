@@ -5,7 +5,6 @@
  * @brief frequency in milliseconds,
  * to allow sending of gallons to the controller
  *
- * 3600000 = 1 hour
  * 300000 = 5 minutes
  */
 #define SEND_GALLONS_COUNTER_FREQUENCY 300000
@@ -36,7 +35,8 @@
 // 2 is sensitive enough, with the IR_COUNTS_THRESHOLD (in zuno)
 // to not produce false positive flow but
 // it can produce false negative flow.
-#define IR_DELTA_THRESHOLD 10
+// 15 appears to be good for Raspberry Pi Pico W
+#define IR_DELTA_THRESHOLD 15
 
 // time in milliseconds that a delta lasts
 //

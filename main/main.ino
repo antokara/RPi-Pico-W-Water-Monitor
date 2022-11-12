@@ -1,25 +1,14 @@
 #include <ArduinoHA.h>
 #include "device.h"
-#include "led.h"
 #include "pulseSensor.h"
-
-// HASensorNumber psiSensor("psi", HASensorNumber::PrecisionP2);
-
-//     statusSensor.setValue("ok");
-//     gpmSensor.setValue(gpm);
-//     psiSensor.setValue(psi);
-//     gallonsSensor.setValue(gallons);
+#include "pressureSensor.h"
 
 void setup()
 {
     Device::setup();
     PulseSensor::setup();
-    Led::setup();
-
-    // psiSensor.setName("Water Pressure");
-    // psiSensor.setIcon("mdi:gauge");
-    // psiSensor.setDeviceClass("pressure");
-    // psiSensor.setUnitOfMeasurement("psi");
+    PressureSensor::setup();
+    // after everything is setup...
     Device::connectoMQTT();
 }
 
@@ -27,4 +16,5 @@ void loop()
 {
     Device::loop();
     PulseSensor::loop();
+    PressureSensor::loop();
 }
