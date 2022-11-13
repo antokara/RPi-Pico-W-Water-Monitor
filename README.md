@@ -70,6 +70,14 @@ Until PlatformIO properly [supports pico w](https://github.com/platformio/platfo
 
 ### VS Code
 
+1. install VS Code
+1. install [PlatformIO IDE for VSCode](https://platformio.org/platformio-ide)
+1. make sure the Arduino and z-uno extensions are not installed or at least, disabled if installed
+1. open Libraries of PIO from side panel, search for `home-assistant-integration` and install it
+1. `pio project init`
+    1. should give `Project has been successfully updated!`
+1. `pio run`
+    1. should result in `[SUCCESS]`
 1. TODO when support gets added [see here](https://arduino-pico.readthedocs.io/en/latest/platformio.html#current-state-of-development)
 1. [install the PlatformIO extension](https://platformio.org/platformio-ide)
 
