@@ -30,6 +30,7 @@ class Device
 public:
     static void connectoMQTT();
     static void connectToWifi();
+    static void setupOTA();
     static void setup();
     static void loop();
 };

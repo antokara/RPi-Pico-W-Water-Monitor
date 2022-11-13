@@ -96,6 +96,9 @@ Until PlatformIO properly [supports pico w](https://github.com/platformio/platfo
 1. to initialize the project
    1. `pio project init`
    1. should give `Project has been successfully updated!`
+1. select the active project environment
+    1. `>PlatformIO: Switch Project Environment` or from the bottom left corner of the IDE
+    1. select USB (for first upload) or OTA (for subsequent ones but change the upload_port IP)
 1. to build
    1. `>PlatformIO: Build` or `pio run` or from the bottom left corner of the IDE
    1. should result in `[SUCCESS]`
@@ -106,6 +109,7 @@ Until PlatformIO properly [supports pico w](https://github.com/platformio/platfo
    1. `>PlatformIO: Upload` or from the bottom left corner of the IDE
    1. should show progress `Loading into Flash: [====] 100%` and `[SUCCESS]`
    1. if not, make sure you have installed the udev rules properly...
+   1. warning: Upload over USB is [not possible currently on Chromebooks](https://bugs.chromium.org/p/chromium/issues/detail?id=980456). Therefore, the first upload MUST take place from another O/S (ie. Fedora) and subsequent uploads can happen OTA from Chromebook
 
 ### secrets
 
