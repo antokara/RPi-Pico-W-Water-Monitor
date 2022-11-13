@@ -107,7 +107,6 @@ void Device::setup()
     // set the status sensor details
     statusSensor.setName("Status");
     statusSensor.setIcon("mdi:check-circle");
-    statusSensor.setForceUpdate(true);
 }
 
 /**
@@ -116,13 +115,23 @@ void Device::setup()
  */
 void Device::loop()
 {
+    // process any pending mqtt messages
     mqtt.loop();
 
-    // only on the first loop...
+    /**
+     * @brief only on the first loop,
+     *        swap the status to force an update of the status sensor,
+     *        in order to have a record of the time the device rebooted...
+     *
+     */
     if (firstLoop)
     {
         firstLoop = false;
         statusSensor.setValue("connected");
+        // allow mqtt to send the "connected" value before changing it to "ready"
+        mqtt.loop();
+        delay(250);
+        statusSensor.setValue("ready");
     }
     // TODO: check WiFi and reconnect if dropped;; TEST it
 }
