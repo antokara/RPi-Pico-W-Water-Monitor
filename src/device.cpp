@@ -92,6 +92,7 @@ void Device::setup()
     // TODO: use DEBUG to disable
     Serial.begin(9600);
     delay(500); // Give the serial terminal a chance to connect, if present
+    Serial.print("Device::Setup()");
 
     Device::connectToWifi();
 

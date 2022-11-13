@@ -71,15 +71,29 @@ Until PlatformIO properly [supports pico w](https://github.com/platformio/platfo
 ### VS Code
 
 1. install VS Code
-1. install [PlatformIO IDE for VSCode](https://platformio.org/platformio-ide)
-1. make sure the Arduino and z-uno extensions are not installed or at least, disabled if installed
-1. open Libraries of PIO from side panel, search for `home-assistant-integration` and install it
-1. `pio project init`
-    1. should give `Project has been successfully updated!`
-1. `pio run`
-    1. should result in `[SUCCESS]`
-1. TODO when support gets added [see here](https://arduino-pico.readthedocs.io/en/latest/platformio.html#current-state-of-development)
+1. make sure the *Arduino* and *z-uno* extensions are not installed or at least, *disabled* if installed
 1. [install the PlatformIO extension](https://platformio.org/platformio-ide)
+1. open Libraries of PIO from side panel, search for `home-assistant-integration` and install it
+1. install [99-platformio-udev.rules](https://docs.platformio.org/en/latest/core/installation/udev-rules.html)
+    1. `curl -fsSL https://raw.githubusercontent.com/platformio/platformio-core/master/scripts/99-platformio-udev.rules | sudo tee /etc/udev/rules.d/99-platformio-udev.rules`
+    1. on Fedora:
+        1. `sudo udevadm control --reload-rules && sudo udevadm trigger`
+        1. `sudo usermod -a -G dialout $USER`
+        1. `sudo usermod -a -G plugdev $USER`
+    1. After this file is installed, physically unplug and reconnect your board
+1. to initialize the project
+    1. `pio project init`
+    1. should give `Project has been successfully updated!`
+1. to build
+    1. `>PlatformIO: Build` or `pio run` or from the bottom left corner of the IDE
+    1. should result in `[SUCCESS]`
+1. to monitor the serial port for debugging
+    1. `>PlatformIO: Serial Monitor` or from the bottom left corner of the IDE
+    1. should open up a new Terminal with the serial monitor
+1. to upload
+    1. `>PlatformIO: Upload` or from the bottom left corner of the IDE
+    1. should show progress `Loading into Flash: [====] 100%` and `[SUCCESS]`
+    1. if not, make sure you have installed the udev rules properly...
 
 ## troubleshooting
 
