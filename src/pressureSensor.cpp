@@ -2,14 +2,9 @@
 #include "device.h"
 #include "pressureSensor.h"
 
-// the number of which we need to multiply voltage by, in order to get the expected input pin value
-const float pressureSensorInputValueMultiplier = float(MAX_ANALOG_PIN_RANGE / MAX_PRESSURE_SENSOR_PIN_RANGE_VOLTAGE);
-
-// the adjusted/actual minimum input value the pressure sensor pin can provide,
-// to match the minimum pressure sensor PSI
-// ie. this should be around 65, which means around 0 PSI (with some fault tolerance)
-const float adjustedMinPressureSensorInputValue = pressureSensorInputValueMultiplier * MIN_PRESSURE_SENSOR_VOLTAGE;
-const float adjustedMaxPressureSensorInputValue = pressureSensorInputValueMultiplier * MAX_PRESSURE_SENSOR_VOLTAGE;
+// the adjusted/actual minimum/max input value the pressure sensor pin can provide,
+const float adjustedMinPressureSensorInputValue = analogInputValueMultiplier * MIN_PRESSURE_SENSOR_VOLTAGE;
+const float adjustedMaxPressureSensorInputValue = analogInputValueMultiplier * MAX_PRESSURE_SENSOR_VOLTAGE;
 
 // the adjusted/actual number we need to multiply the input value - adjustedMinPressureSensorInputValue,
 // in order to get the true PSI of the sensor
@@ -55,6 +50,10 @@ void PressureSensor::loop()
     {
         prevPsi = psi;
         lastPressureSendTime = millis();
+        Serial.print("raw: ");
+        Serial.println(rawPressureSensorInputValue);
+        Serial.print("PSI: ");
+        Serial.println(psi);
         // only send a minimum of zero PSI
         // to not mess up the statistics/logs
         if (psi > 0)
