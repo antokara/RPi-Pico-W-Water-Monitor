@@ -55,6 +55,15 @@ void PressureSensor::loop()
     {
         prevPsi = psi;
         lastPressureSendTime = millis();
-        psiSensor.setValue(psi);
+        // only send a minimum of zero PSI
+        // to not mess up the statistics/logs
+        if (psi > 0)
+        {
+            psiSensor.setValue(psi);
+        }
+        else
+        {
+            psiSensor.setValue(float(0.0));
+        }
     }
 }
