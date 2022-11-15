@@ -1,8 +1,10 @@
 #include <ArduinoHA.h>
+#include "device.h"
+#include "switches.h"
 #include "pulseSensor.h"
 
 // holds the last pulse sensor isActive state
-boolean lastPulseSensorIsActive = false;
+boolean PulseSensor::lastPulseSensorIsActive = false;
 
 // formula for getting GPM, using pulse rate and duration between pulses
 // [target rate time] / [duration between pulses] / [pulse rate] = Gallons Per Rate
@@ -21,56 +23,59 @@ boolean lastPulseSensorIsActive = false;
 // Pulse Rate is 1 Pulse/Gallon
 
 // last time we had a pulse
-unsigned long lastPulseTime = 0;
+unsigned long PulseSensor::lastPulseTime = 0;
 
 // time passed between previous pulse and the current one
 // TODO: rename last/prev/current to clear things up
-unsigned long prevTimePassedSinceLastPulse = 0;
+unsigned long PulseSensor::prevTimePassedSinceLastPulse = 0;
 
 // current gallons per minute
-float gpm = 0.0;
+float PulseSensor::gpm = 0.0;
 
 // last flow GPM value we sent (to avoid let's say sending 0.0 twice in a row)
-float lastGpmSent = 0.0;
+float PulseSensor::lastGpmSent = 0.0;
 
 // last time we sent the gpm
-unsigned long lastGpmSendTime = 0;
+unsigned long PulseSensor::lastGpmSendTime = 0;
 
 // time that must pass without a pulse, in order to be considered no-flow
-unsigned int flowTimeout = 0;
+unsigned int PulseSensor::flowTimeout = 0;
 
 // last time we got an infrared delta
-unsigned long lastIrTime = 0;
+unsigned long PulseSensor::lastIrTime = 0;
 
 // the "first" time we got an infrared delta
-unsigned long fistIrTime = 0;
+unsigned long PulseSensor::fistIrTime = 0;
 
 // previous infrared value we had (since the last delta)
-int prevIrValue = -1;
+int PulseSensor::prevIrValue = -1;
 
 // number of delta counts that are happening, within the timeout period
 // @see IR_COUNTS_THRESHOLD
-unsigned int irCounts = 0;
+unsigned int PulseSensor::irCounts = 0;
 
 // current value
-bool isIrSensorActive = false;
+bool PulseSensor::isIrSensorActive = false;
 
 // gallons to increase the water meter by
 // defaults to -1 in order to send 0 at boot, in case it rebooted while last sent a value > 0
-long gallonsCounter = -1;
+long PulseSensor::gallonsCounter = -1;
 
 // buffer for  the gallons to increase the water meter by.
 // this is the internal counter, before we update and send the new value to the controller.
-long gallonsCounterBuffer = 0;
+long PulseSensor::gallonsCounterBuffer = 0;
 
 // last time we sent the gallons counter
-unsigned long lastGallonsCounterSendTime = 0;
+unsigned long PulseSensor::lastGallonsCounterSendTime = 0;
+
+// flag to keep track of the first loop
+bool PulseSensor::firstLoop = true;
 
 // the water flow GPM sensor
-HASensorNumber gpmSensor("gpm", HASensorNumber::PrecisionP2);
+HASensorNumber PulseSensor::gpmSensor("waterMonitorFlow", HASensorNumber::PrecisionP2);
 
 // the water gallons counter sensor
-HASensorNumber gallonsSensor("gallons", HASensorNumber::PrecisionP0);
+HASensorNumber PulseSensor::gallonsSensor("waterMonitorGallonsCounter", HASensorNumber::PrecisionP0);
 
 /**
  * @brief if we should send the pressure to the controller.
@@ -81,7 +86,7 @@ HASensorNumber gallonsSensor("gallons", HASensorNumber::PrecisionP0);
  */
 bool PulseSensor::shouldSendGallonsCounter()
 {
-    return abs(long(millis() - lastGallonsCounterSendTime)) > SEND_GALLONS_COUNTER_FREQUENCY;
+    return abs(long(millis() - PulseSensor::lastGallonsCounterSendTime)) > SEND_GALLONS_COUNTER_FREQUENCY;
 }
 
 /**
@@ -94,22 +99,22 @@ void PulseSensor::checkGallonsCounter()
     if (PulseSensor::shouldSendGallonsCounter())
     {
         bool send = false;
-        if (gallonsCounter == 0)
+        if (PulseSensor::gallonsCounter == 0)
         {
             // don't update when both counters are set to zero
-            if (gallonsCounterBuffer != 0)
+            if (PulseSensor::gallonsCounterBuffer != 0)
             {
                 // set the exposed counter
-                gallonsCounter = gallonsCounterBuffer;
+                PulseSensor::gallonsCounter = PulseSensor::gallonsCounterBuffer;
                 // reset the buffer
-                gallonsCounterBuffer = 0;
+                PulseSensor::gallonsCounterBuffer = 0;
                 send = true;
             }
         }
         else
         {
             // reset the exposed counter
-            gallonsCounter = 0;
+            PulseSensor::gallonsCounter = 0;
             send = true;
         }
 
@@ -117,8 +122,8 @@ void PulseSensor::checkGallonsCounter()
         if (send)
         {
             // send the new value
-            lastGallonsCounterSendTime = millis();
-            gallonsSensor.setValue(gallonsCounter);
+            PulseSensor::lastGallonsCounterSendTime = millis();
+            PulseSensor::gallonsSensor.setValue(PulseSensor::gallonsCounter);
         }
     }
 }
@@ -129,7 +134,7 @@ void PulseSensor::checkGallonsCounter()
  */
 void PulseSensor::increaseGallonsCounter()
 {
-    gallonsCounterBuffer++;
+    PulseSensor::gallonsCounterBuffer++;
 }
 
 /**
@@ -149,60 +154,81 @@ void PulseSensor::updateIrSensorActive()
 {
     int irSensorValue = analogRead(IR_SENSOR_PIN); // read the input pin
     // only when the value has changed
-    if (prevIrValue == -1)
+    if (PulseSensor::prevIrValue == -1)
     {
         // during initial run, just set the previous value to the current one
         // isIrSensorActive should already be set to false
-        prevIrValue = irSensorValue;
-        Serial.print("IR initial: ");
-        Serial.println(irSensorValue);
+        PulseSensor::prevIrValue = irSensorValue;
     }
-    else if (abs(irSensorValue - prevIrValue) > IR_DELTA_THRESHOLD)
+    else if (abs(irSensorValue - PulseSensor::prevIrValue) > IR_DELTA_THRESHOLD)
     {
-        // Serial.print("IR > delta: ");
-        // Serial.println(irSensorValue);
         // when the delta is greater than the threshold
         // update the the last time we had a delta
         lastIrTime = millis();
 
-        int delta = abs(irSensorValue - prevIrValue);
-
         // keep the last value
-        prevIrValue = irSensorValue;
+        PulseSensor::prevIrValue = irSensorValue;
 
         // when the time since the first IR delta
         // is less than the timeout
-        if (abs(long(millis() - fistIrTime)) <= IR_TIMEOUT)
+        if (abs(long(millis() - PulseSensor::fistIrTime)) <= IR_TIMEOUT)
         {
             // increase the counter
-            irCounts++;
+            PulseSensor::irCounts++;
         }
         else
         {
             // otherwise, reset
-            irCounts = 0;
-            fistIrTime = millis();
+            PulseSensor::irCounts = 0;
+            PulseSensor::fistIrTime = millis();
         }
 
         // when the IR counts have reached the threshold
-        if (irCounts > IR_COUNTS_THRESHOLD)
+        if (PulseSensor::irCounts > IR_COUNTS_THRESHOLD)
         {
             // mark our IR sensor as active
-            isIrSensorActive = true;
+            PulseSensor::isIrSensorActive = true;
 
-            Serial.print("IR true with delta: ");
-            Serial.println(delta);
+#ifdef SERIAL_DEBUG
+            Serial.print("irCounts: ");
+            Serial.print(PulseSensor::irCounts);
+            Serial.print(", IR true with delta: ");
+            Serial.println(abs(irSensorValue - PulseSensor::prevIrValue));
+#endif
+            if (Switches::isDebugActive)
+            {
+                Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts: " + String(PulseSensor::irCounts) + ", IR TRUE with delta: " + abs(irSensorValue - PulseSensor::prevIrValue)).c_str());
+            }
+        }
+        else
+        {
+#ifdef SERIAL_DEBUG
+            Serial.print("irCounts: ");
+            Serial.print(PulseSensor::irCounts);
+            Serial.print(", IR delta: ");
+            Serial.println(abs(irSensorValue - PulseSensor::prevIrValue));
+#endif
+            if (Switches::isDebugActive)
+            {
+                Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts: " + String(PulseSensor::irCounts) + ", delta: " + abs(irSensorValue - PulseSensor::prevIrValue)).c_str());
+            }
         }
     }
-    else if (isIrSensorActive && abs(long(millis() - lastIrTime)) > IR_TIMEOUT)
+    else if (PulseSensor::isIrSensorActive && abs(long(millis() - PulseSensor::lastIrTime)) > IR_TIMEOUT)
     {
+#ifdef SERIAL_DEBUG
         Serial.print("IR false with delta: ");
-        Serial.println(abs(irSensorValue - prevIrValue));
+        Serial.println(abs(irSensorValue - PulseSensor::prevIrValue));
+#endif
+        if (Switches::isDebugActive)
+        {
+            Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts: " + String(PulseSensor::irCounts) + ", IR FALSE with delta: " + abs(irSensorValue - PulseSensor::prevIrValue)).c_str());
+        }
         // when the delta is less than the threshold and
         // the timeout period has passed, only then,
         // mark the sensor as inactive.
         // (this is a debouncer of some sort)
-        isIrSensorActive = false;
+        PulseSensor::isIrSensorActive = false;
     }
 }
 
@@ -217,9 +243,9 @@ void PulseSensor::updateIrSensorActive()
  */
 unsigned long PulseSensor::timePassedSinceLastPulse(bool actual = false)
 {
-    if (lastPulseTime > 0)
+    if (PulseSensor::lastPulseTime > 0)
     {
-        const unsigned long timePassed = abs(long(millis() - lastPulseTime));
+        const unsigned long timePassed = abs(long(millis() - PulseSensor::lastPulseTime));
         if (timePassed > 0)
         {
             return timePassed;
@@ -231,7 +257,7 @@ unsigned long PulseSensor::timePassedSinceLastPulse(bool actual = false)
         return 0;
     }
 
-    return flowTimeout;
+    return PulseSensor::flowTimeout;
 }
 
 /**
@@ -239,7 +265,7 @@ unsigned long PulseSensor::timePassedSinceLastPulse(bool actual = false)
  */
 void PulseSensor::updateGPM()
 {
-    gpm = TARGET_RATE_TIME / timePassedSinceLastPulse() / PULSE_RATE;
+    PulseSensor::gpm = TARGET_RATE_TIME / PulseSensor::timePassedSinceLastPulse() / PULSE_RATE;
 }
 
 /**
@@ -249,7 +275,7 @@ void PulseSensor::updateGPM()
  */
 void PulseSensor::updateGPM(float newValue)
 {
-    gpm = newValue;
+    PulseSensor::gpm = newValue;
 }
 
 /**
@@ -261,11 +287,11 @@ void PulseSensor::updateGPM(float newValue)
  */
 void PulseSensor::sendGPM(bool force = false)
 {
-    if (lastGpmSent != gpm && (abs(long(millis() - lastGpmSendTime)) > SEND_GPM_FREQUENCY || force))
+    if (PulseSensor::lastGpmSent != PulseSensor::gpm && (abs(long(millis() - PulseSensor::lastGpmSendTime)) > SEND_GPM_FREQUENCY || force))
     {
-        lastGpmSent = gpm;
-        lastGpmSendTime = millis();
-        gpmSensor.setValue(gpm);
+        PulseSensor::lastGpmSent = gpm;
+        PulseSensor::lastGpmSendTime = millis();
+        PulseSensor::gpmSensor.setValue(gpm);
     }
 }
 
@@ -282,21 +308,35 @@ bool PulseSensor::isPulseSensorActive()
     if (digitalRead(PULSE_SENSOR_PIN) == LOW)
     {
         // when the sensor is in active state
-        if (!lastPulseSensorIsActive && abs(long(millis() - lastPulseTime)) > PULSE_DEBOUNCE_FREQUENCY)
+        if (!PulseSensor::lastPulseSensorIsActive && abs(long(millis() - PulseSensor::lastPulseTime)) > PULSE_DEBOUNCE_FREQUENCY)
         {
             // and it just turned active
-            lastPulseSensorIsActive = true;
+            PulseSensor::lastPulseSensorIsActive = true;
+
+#ifdef SERIAL_DEBUG
+            Serial.println("lastPulseSensorIsActive true");
+#endif
+            if (Switches::isDebugActive)
+            {
+                Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, "lastPulseSensorIsActive true");
+            }
 
             // only the first time, return true
-            Serial.println("lastPulseSensorIsActive true");
-            return lastPulseSensorIsActive;
+            return PulseSensor::lastPulseSensorIsActive;
         }
     }
-    else if (lastPulseSensorIsActive)
+    else if (PulseSensor::lastPulseSensorIsActive)
     {
         // it just turned inactive
-        lastPulseSensorIsActive = false;
+        PulseSensor::lastPulseSensorIsActive = false;
+
+#ifdef SERIAL_DEBUG
         Serial.println("lastPulseSensorIsActive false");
+#endif
+        if (Switches::isDebugActive)
+        {
+            Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, "lastPulseSensorIsActive false");
+        }
     }
 
     // any other time, return inactive
@@ -306,18 +346,18 @@ bool PulseSensor::isPulseSensorActive()
 void PulseSensor::setup()
 {
     // set the water flow sensor details
-    gpmSensor.setName("Water Flow");
-    gpmSensor.setIcon("mdi:water");
-    gpmSensor.setUnitOfMeasurement("gpm");
+    PulseSensor::gpmSensor.setName("Water Flow");
+    PulseSensor::gpmSensor.setIcon("mdi:water");
+    PulseSensor::gpmSensor.setUnitOfMeasurement("gpm");
 
     // set the water gallons counter sensor details
-    gallonsSensor.setName("Gallons Counter");
-    gallonsSensor.setIcon("mdi:counter");
-    gallonsSensor.setDeviceClass("water");
-    gallonsSensor.setUnitOfMeasurement("gal");
+    PulseSensor::gallonsSensor.setName("Gallons Counter");
+    PulseSensor::gallonsSensor.setIcon("mdi:counter");
+    PulseSensor::gallonsSensor.setDeviceClass("water");
+    PulseSensor::gallonsSensor.setUnitOfMeasurement("gal");
 
     // calculate how much time must pass without a pulse, in order to consider no-flow
-    flowTimeout = TARGET_RATE_TIME / MIN_GPM / PULSE_RATE;
+    PulseSensor::flowTimeout = TARGET_RATE_TIME / MIN_GPM / PULSE_RATE;
 
     // set the mode for the digital pins
     pinMode(LED_BUILTIN, OUTPUT);
@@ -326,6 +366,18 @@ void PulseSensor::setup()
 
 void PulseSensor::loop()
 {
+    /**
+     * @brief only on the first loop, reset the flow to zero,
+     * in case there was a previous flow that is now invalid.
+     *
+     */
+    if (PulseSensor::firstLoop)
+    {
+        PulseSensor::firstLoop = false;
+        PulseSensor::gpmSensor.setValue(float(0.0));
+        PulseSensor::gallonsSensor.setValue(float(0.0));
+    }
+
     // update the value
     PulseSensor::updateIrSensorActive();
 
@@ -333,13 +385,13 @@ void PulseSensor::loop()
     {
         // since we got a pulse, force the IR sensor to be true
         // the pulse is more reliable
-        isIrSensorActive = true;
-        lastIrTime = millis();
+        PulseSensor::isIrSensorActive = true;
+        PulseSensor::lastIrTime = millis();
 
         // we got a pulse (this can only happen once, per pulse,
         // even if the meter stops right when the switch is on and the switch remains on)
         PulseSensor::updateGPM();
-        if (gpm < MIN_GPM)
+        if (PulseSensor::gpm < MIN_GPM)
         {
             // when there's pulse but too much time has passed since the last pulse
             // make sure we set a minimum flow.
@@ -352,15 +404,15 @@ void PulseSensor::loop()
         PulseSensor::increaseGallonsCounter();
 
         // keep the time passed, before we update the lastPulseTime
-        prevTimePassedSinceLastPulse = PulseSensor::timePassedSinceLastPulse();
+        PulseSensor::prevTimePassedSinceLastPulse = PulseSensor::timePassedSinceLastPulse();
 
         // reset the timer, after we have used it (with timePassedSinceLastPulse)
-        lastPulseTime = millis();
+        PulseSensor::lastPulseTime = millis();
     }
-    else if (isIrSensorActive)
+    else if (PulseSensor::isIrSensorActive)
     {
-        const float prevGPM = gpm;
-        if (PulseSensor::timePassedSinceLastPulse(true) > prevTimePassedSinceLastPulse)
+        const float prevGPM = PulseSensor::gpm;
+        if (PulseSensor::timePassedSinceLastPulse(true) > PulseSensor::prevTimePassedSinceLastPulse)
         {
             // when the time that has passed since the last pulse
             // is greater than the time that had passed since the previous to last one and
@@ -371,7 +423,7 @@ void PulseSensor::loop()
             PulseSensor::updateGPM();
         }
 
-        if (gpm < MIN_GPM)
+        if (PulseSensor::gpm < MIN_GPM)
         {
             // when there's no pulse but there's flow (the IR sensor is active) and
             // when the GPM has been set to zero because too much time has passed since the last pulse
@@ -381,7 +433,7 @@ void PulseSensor::loop()
             PulseSensor::updateGPM(MIN_GPM);
         }
 
-        if (prevGPM == 0.0 && gpm > 0.0)
+        if (prevGPM == 0.0 && PulseSensor::gpm > 0.0)
         {
             // turn on the LED, when we just set the gpm > 0 from 0
             digitalWrite(LED_BUILTIN, HIGH);
@@ -393,7 +445,7 @@ void PulseSensor::loop()
             PulseSensor::sendGPM();
         }
     }
-    else if (gpm > 0.0)
+    else if (PulseSensor::gpm > 0.0)
     {
         // no pulse or flow (the IR sensor is inactive) but there's residual GPM
         // reset everything to 0
@@ -401,7 +453,13 @@ void PulseSensor::loop()
         PulseSensor::sendGPM(true);
         digitalWrite(LED_BUILTIN, LOW);
 
+#ifdef SERIAL_DEBUG
         Serial.println("gpm stop - no pulse or flow");
+#endif
+        if (Switches::isDebugActive)
+        {
+            Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, "gpm stop - no pulse or flow");
+        }
     }
 
     // after all other checks have taken place and

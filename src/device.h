@@ -1,8 +1,13 @@
 #ifndef DEVICE
 #define DEVICE
 
-#define DEVICE_ID "waterMonitorTest"
-#define DEVICE_NAME "Water Monitor Test"
+#include <ArduinoHA.h>
+// TODO: use def for OTA
+#include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
+
+#define DEVICE_ID "waterMonitor"
+#define DEVICE_NAME "Water Monitor"
 #define FIRMWARE_VERSION "1.0.0"
 
 /**
@@ -20,16 +25,33 @@
 #define MAX_ANALOG_PIN_RANGE 1023
 
 /**
+ * @brief the max voltage an analog pin will need,
+ *        to reach the MAX_ANALOG_PIN_RANGE
+ */
+#define MAX_ANALOG_PIN_RANGE_VOLTAGE 3.3
+
+/**
  * @brief time in milliseconds to wait for the WiFi to connect
  *
  */
-#define WAIT_FOR_WIFI 3000
+#define WAIT_FOR_WIFI 5000
 
 class Device
 {
 public:
+    // properties
+    static const float analogInputValueMultiplier;
+    static int wifiStatus;
+    static WiFiClient client;
+    static HADevice device;
+    static HAMqtt mqtt;
+    static HASensor statusSensor;
+    static bool firstLoop;
+
+    // methods
     static void connectoMQTT();
     static void connectToWifi();
+    static void setupOTA();
     static void setup();
     static void loop();
 };
