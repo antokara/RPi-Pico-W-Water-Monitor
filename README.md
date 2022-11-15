@@ -126,8 +126,10 @@ copy `secrets.h.template` to `secrets.h` and insert values
 it is not known why but uploading over WiFi directly to the device, can fail at random % and at random times.
 the same code and environment settings can fail or succeed just be retrying multiple times.
 
-restarting the device does not really help but WiFi signal may be the issue.
-please note that it may take up to 10 times/retries to succeed.
+Restarting the device does not really help.
+
+The WiFi signal is very important to be good.
+Otherwise, it may take up to 10 times/retries to succeed.
 
 ## references
 
