@@ -116,6 +116,7 @@ void Device::connectoMQTT()
  */
 void Device::setupOTA()
 {
+  ArduinoOTA.setPassword(OTA_PASSWORD);
   ArduinoOTA.onStart([]()
                      {
                        String type;
