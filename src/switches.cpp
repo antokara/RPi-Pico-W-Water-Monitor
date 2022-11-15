@@ -2,7 +2,7 @@
 #include "switches.h"
 #include "pressureSensor.h"
 
-HASwitch Switches::waterLeakTestSwitch("waterLeakTest");
+HASwitch Switches::waterLeakTestSwitch("waterMonitorLeakTest");
 HASwitch Switches::debugSwitch("waterMonitorDebug");
 
 /**
@@ -80,8 +80,8 @@ void Switches::setup()
     Switches::waterLeakTestSwitch.setName("Water Leak Test");
     Switches::waterLeakTestSwitch.onCommand(Switches::onWaterLeakTestSwitchCommand);
 
-    Switches::debugSwitch.setIcon("mdi:test-tube");
-    Switches::debugSwitch.setName("Debug");
+    // Switches::debugSwitch.setIcon("mdi:test-tube");
+    Switches::debugSwitch.setName("Water Monitor Debug");
     Switches::debugSwitch.onCommand(Switches::onWaterMonitorDebugSwitchCommand);
 }
 

@@ -35,7 +35,7 @@ float PressureSensor::prevPsi = 0.0;
 unsigned long PressureSensor::lastPressureSendTime = 0;
 
 // the water pressure sensor
-HASensorNumber PressureSensor::psiSensor("psi", HASensorNumber::PrecisionP2);
+HASensorNumber PressureSensor::psiSensor("waterMonitorPressure", HASensorNumber::PrecisionP2);
 
 void PressureSensor::setup()
 {

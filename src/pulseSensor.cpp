@@ -72,10 +72,10 @@ unsigned long PulseSensor::lastGallonsCounterSendTime = 0;
 bool PulseSensor::firstLoop = true;
 
 // the water flow GPM sensor
-HASensorNumber PulseSensor::gpmSensor("gpm", HASensorNumber::PrecisionP2);
+HASensorNumber PulseSensor::gpmSensor("waterMonitorFlow", HASensorNumber::PrecisionP2);
 
 // the water gallons counter sensor
-HASensorNumber PulseSensor::gallonsSensor("gallons", HASensorNumber::PrecisionP0);
+HASensorNumber PulseSensor::gallonsSensor("waterMonitorGallonsCounter", HASensorNumber::PrecisionP0);
 
 /**
  * @brief if we should send the pressure to the controller.
@@ -375,6 +375,7 @@ void PulseSensor::loop()
     {
         PulseSensor::firstLoop = false;
         PulseSensor::gpmSensor.setValue(float(0.0));
+        PulseSensor::gallonsSensor.setValue(float(0.0));
     }
 
     // update the value

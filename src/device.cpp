@@ -43,7 +43,7 @@ HAMqtt Device::mqtt(client, device);
  * @brief a status string sensor
  * for the general status/health of the device
  */
-HASensor Device::statusSensor("status");
+HASensor Device::statusSensor("waterMonitorStatus");
 
 // flag to keep track of the first loop
 bool Device::firstLoop = true;
@@ -116,6 +116,7 @@ void Device::connectoMQTT()
  */
 void Device::setupOTA()
 {
+  ArduinoOTA.setHostname(DEVICE_ID);
   ArduinoOTA.setPassword(OTA_PASSWORD);
   ArduinoOTA.onStart([]()
                      {

@@ -6,8 +6,8 @@
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 
-#define DEVICE_ID "waterMonitorTest"
-#define DEVICE_NAME "Water Monitor Test"
+#define DEVICE_ID "waterMonitor"
+#define DEVICE_NAME "Water Monitor"
 #define FIRMWARE_VERSION "1.0.0"
 
 /**

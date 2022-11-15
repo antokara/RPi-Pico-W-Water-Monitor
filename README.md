@@ -98,7 +98,7 @@ Until PlatformIO properly [supports pico w](https://github.com/platformio/platfo
    1. should give `Project has been successfully updated!`
 1. select the active project environment
     1. `>PlatformIO: Switch Project Environment` or from the bottom left corner of the IDE
-    1. select USB (for first upload) or OTA (for subsequent ones but change the upload_port IP and auth)
+    1. select USB (for first upload) or OTA (for subsequent ones but change the `auth` inside `platformio.ini` file)
 1. to build
    1. `>PlatformIO: Build` or `pio run` or from the bottom left corner of the IDE
    1. should result in `[SUCCESS]`
