@@ -75,6 +75,27 @@
 class PulseSensor
 {
 public:
+    // properties
+    static boolean lastPulseSensorIsActive;
+    static unsigned long lastPulseTime;
+    static unsigned long prevTimePassedSinceLastPulse;
+    static float gpm;
+    static float lastGpmSent;
+    static unsigned long lastGpmSendTime;
+    static unsigned int flowTimeout;
+    static unsigned long lastIrTime;
+    static unsigned long fistIrTime;
+    static int prevIrValue;
+    static unsigned int irCounts;
+    static bool isIrSensorActive;
+    static long gallonsCounter;
+    static long gallonsCounterBuffer;
+    static unsigned long lastGallonsCounterSendTime;
+    static bool firstLoop;
+    static HASensorNumber gpmSensor;
+    static HASensorNumber gallonsSensor;
+
+    // methods
     static bool shouldSendGallonsCounter();
     static void checkGallonsCounter();
     static void increaseGallonsCounter();

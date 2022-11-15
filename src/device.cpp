@@ -1,5 +1,4 @@
 #include <ArduinoHA.h>
-// #include <WiFi.h>
 // TODO: use def for OTA
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
@@ -17,20 +16,37 @@
  *
  */
 
-int wifiStatus;
+/**
+ * @brief the number of which we need to multiply voltage by,
+ *        in order to get the expected input pin value, when we know the expected voltage.
+ *        This is useful in finding the min/max/current input pin value, a sensor should provide.
+ *
+ * @example with MAX_ANALOG_PIN_RANGE 1023
+ *          and MAX_ANALOG_PIN_RANGE_VOLTAGE 3.3
+ *          analogInputValueMultiplier will be 310
+ *
+ *          let's say our sensor reports a minimum of 0.53v at its 0 and 3.33v max at its 100.
+ *          to get our adjusted pin input value, we will do:
+ *          adjustedMinInputValue = analogInputValueMultiplier * 0.53 = 164.3
+ *          adjustedInputValue = inputValue - adjustedMinInputValue = 164.3 - 164.3 = 0
+ *          that way, our adjusted input will now be 0, which should align with the min of the sensor.
+ */
+const float Device::analogInputValueMultiplier = float(MAX_ANALOG_PIN_RANGE / MAX_ANALOG_PIN_RANGE_VOLTAGE);
 
-WiFiClient client;
-HADevice device(DEVICE_ID);
-HAMqtt mqtt(client, device);
+int Device::wifiStatus;
+
+WiFiClient Device::client;
+HADevice Device::device(DEVICE_ID);
+HAMqtt Device::mqtt(client, device);
 
 /**
  * @brief a status string sensor
  * for the general status/health of the device
  */
-HASensor statusSensor("status");
+HASensor Device::statusSensor("status");
 
 // flag to keep track of the first loop
-bool firstLoop = true;
+bool Device::firstLoop = true;
 
 void Device::connectToWifi()
 {
@@ -39,11 +55,11 @@ void Device::connectToWifi()
   WiFi.macAddress(mac);
 
   // connect to WiFi
-  while (wifiStatus != WL_CONNECTED)
+  while (Device::wifiStatus != WL_CONNECTED)
   {
     Serial.print("Attempting to connect to WPA SSID: ");
     Serial.println(WIFI_SSID);
-    wifiStatus = WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    Device::wifiStatus = WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     // wait to connect...
     delay(WAIT_FOR_WIFI);
   }
@@ -139,17 +155,17 @@ void Device::setup()
   Device::connectToWifi();
 
   // set device's details
-  device.setName(DEVICE_NAME);
-  device.setSoftwareVersion(FIRMWARE_VERSION);
+  Device::device.setName(DEVICE_NAME);
+  Device::device.setSoftwareVersion(FIRMWARE_VERSION);
 
   // enable MQTT LWT feature. If device will lose connection
   // to the broker, all device types related to it will be marked as offline in
   // the Home Assistant Panel.
-  device.enableLastWill();
+  Device::device.enableLastWill();
 
   // set the status sensor details
-  statusSensor.setName("Status");
-  statusSensor.setIcon("mdi:check-circle");
+  Device::statusSensor.setName("Status");
+  Device::statusSensor.setIcon("mdi:check-circle");
 
   // enable OTA
   Device::setupOTA();
@@ -162,7 +178,7 @@ void Device::setup()
 void Device::loop()
 {
   // process any pending mqtt messages
-  mqtt.loop();
+  Device::mqtt.loop();
 
   // process any incoming OTA requests
   ArduinoOTA.handle();
@@ -173,14 +189,14 @@ void Device::loop()
    *        in order to have a record of the time the device rebooted...
    *
    */
-  if (firstLoop)
+  if (Device::firstLoop)
   {
-    firstLoop = false;
-    statusSensor.setValue("connected");
+    Device::firstLoop = false;
+    Device::statusSensor.setValue("connected");
     // allow mqtt to send the "connected" value before changing it to "ready"
     mqtt.loop();
     delay(250);
-    statusSensor.setValue("ready");
+    Device::statusSensor.setValue("ready");
   }
   // TODO: check WiFi and reconnect if dropped;; TEST it
 }

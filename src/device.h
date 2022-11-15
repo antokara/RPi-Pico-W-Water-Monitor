@@ -1,6 +1,11 @@
 #ifndef DEVICE
 #define DEVICE
 
+#include <ArduinoHA.h>
+// TODO: use def for OTA
+#include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
+
 #define DEVICE_ID "waterMonitorTest"
 #define DEVICE_NAME "Water Monitor Test"
 #define FIRMWARE_VERSION "1.0.0"
@@ -26,23 +31,6 @@
 #define MAX_ANALOG_PIN_RANGE_VOLTAGE 3.3
 
 /**
- * @brief the number of which we need to multiply voltage by,
- *        in order to get the expected input pin value, when we know the expected voltage.
- *        This is useful in finding the min/max/current input pin value, a sensor should provide.
- *
- * @example with MAX_ANALOG_PIN_RANGE 1023
- *          and MAX_ANALOG_PIN_RANGE_VOLTAGE 3.3
- *          analogInputValueMultiplier will be 310
- *
- *          let's say our sensor reports a minimum of 0.53v at its 0 and 3.33v max at its 100.
- *          to get our adjusted pin input value, we will do:
- *          adjustedMinInputValue = analogInputValueMultiplier * 0.53 = 164.3
- *          adjustedInputValue = inputValue - adjustedMinInputValue = 164.3 - 164.3 = 0
- *          that way, our adjusted input will now be 0, which should align with the min of the sensor.
- */
-const float analogInputValueMultiplier = float(MAX_ANALOG_PIN_RANGE / MAX_ANALOG_PIN_RANGE_VOLTAGE);
-
-/**
  * @brief time in milliseconds to wait for the WiFi to connect
  *
  */
@@ -51,6 +39,16 @@ const float analogInputValueMultiplier = float(MAX_ANALOG_PIN_RANGE / MAX_ANALOG
 class Device
 {
 public:
+    // properties
+    static const float analogInputValueMultiplier;
+    static int wifiStatus;
+    static WiFiClient client;
+    static HADevice device;
+    static HAMqtt mqtt;
+    static HASensor statusSensor;
+    static bool firstLoop;
+
+    // methods
     static void connectoMQTT();
     static void connectToWifi();
     static void setupOTA();

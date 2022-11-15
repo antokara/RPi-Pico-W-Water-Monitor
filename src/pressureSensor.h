@@ -1,19 +1,7 @@
 #ifndef PRESSURE_SENSOR
 #define PRESSURE_SENSOR
 
-/**
- * @brief the delta in PSI that must be great or equal to,
- * between the previous reading and the current,
- * in order to consider updating it and sending it to the controller
- */
-#define PRESSURE_DELTA 0.1
-
-/**
- * @brief frequency in milliseconds,
- * to allow sending of the water pressure to the controller,
- * even if the delta is greater.
- */
-#define SEND_PRESSURE_FREQUENCY 5000
+#include <ArduinoHA.h>
 
 // the (analog) pin that we connect the pressure sensor output
 // you may use A0-A2
@@ -59,6 +47,17 @@
 class PressureSensor
 {
 public:
+    static float pressureDelta;
+    static unsigned int sendPressureFrequency;
+    static const float adjustedMinPressureSensorInputValue;
+    static const float adjustedMaxPressureSensorInputValue;
+    static const float adjustedPressureSensorInputValueMultiplier;
+    static float psi;
+    static float prevPsi;
+    static unsigned long lastPressureSendTime;
+    static HASensorNumber psiSensor;
+
+    // methods
     static bool shouldSendPSI();
     static void setup();
     static void loop();

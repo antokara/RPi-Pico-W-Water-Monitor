@@ -2,32 +2,46 @@
 #include "device.h"
 #include "pressureSensor.h"
 
+/**
+ * @brief the delta in PSI that must be great or equal to,
+ * between the previous reading and the current,
+ * in order to consider updating it and sending it to the controller
+ */
+float PressureSensor::pressureDelta = 0.1;
+
+/**
+ * @brief frequency in milliseconds,
+ * to allow sending of the water pressure to the controller,
+ * even if the delta is greater.
+ */
+unsigned int PressureSensor::sendPressureFrequency = 5000;
+
 // the adjusted/actual minimum/max input value the pressure sensor pin can provide,
-const float adjustedMinPressureSensorInputValue = analogInputValueMultiplier * MIN_PRESSURE_SENSOR_VOLTAGE;
-const float adjustedMaxPressureSensorInputValue = analogInputValueMultiplier * MAX_PRESSURE_SENSOR_VOLTAGE;
+const float PressureSensor::adjustedMinPressureSensorInputValue = Device::analogInputValueMultiplier * MIN_PRESSURE_SENSOR_VOLTAGE;
+const float PressureSensor::adjustedMaxPressureSensorInputValue = Device::analogInputValueMultiplier * MAX_PRESSURE_SENSOR_VOLTAGE;
 
 // the adjusted/actual number we need to multiply the input value - adjustedMinPressureSensorInputValue,
 // in order to get the true PSI of the sensor
-const float adjustedPressureSensorInputValueMultiplier = MAX_PRESSURE_SENSOR_PSI / adjustedMaxPressureSensorInputValue * PRESSURE_SENSOR_PSI_CALIBRATION_MULTIPLIER;
+const float PressureSensor::adjustedPressureSensorInputValueMultiplier = MAX_PRESSURE_SENSOR_PSI / PressureSensor::adjustedMaxPressureSensorInputValue * PRESSURE_SENSOR_PSI_CALIBRATION_MULTIPLIER;
 
 // current PSI
-float psi = 0.0;
+float PressureSensor::psi = 0.0;
 
 // previous PSI (so we only send changes)
-float prevPsi = 0.0;
+float PressureSensor::prevPsi = 0.0;
 
 // last time we sent the pressure
-unsigned long lastPressureSendTime = 0;
+unsigned long PressureSensor::lastPressureSendTime = 0;
 
 // the water pressure sensor
-HASensorNumber psiSensor("psi", HASensorNumber::PrecisionP2);
+HASensorNumber PressureSensor::psiSensor("psi", HASensorNumber::PrecisionP2);
 
 void PressureSensor::setup()
 {
-    psiSensor.setName("Water Pressure");
-    psiSensor.setIcon("mdi:gauge");
-    psiSensor.setDeviceClass("pressure");
-    psiSensor.setUnitOfMeasurement("psi");
+    PressureSensor::psiSensor.setName("Water Pressure");
+    PressureSensor::psiSensor.setIcon("mdi:gauge");
+    PressureSensor::psiSensor.setDeviceClass("pressure");
+    PressureSensor::psiSensor.setUnitOfMeasurement("psi");
 }
 
 /**
@@ -39,30 +53,30 @@ void PressureSensor::setup()
  */
 bool PressureSensor::shouldSendPSI()
 {
-    return abs(long(millis() - lastPressureSendTime)) > SEND_PRESSURE_FREQUENCY;
+    return abs(long(millis() - PressureSensor::lastPressureSendTime)) > PressureSensor::sendPressureFrequency;
 }
 
 void PressureSensor::loop()
 {
     int rawPressureSensorInputValue = analogRead(PRESSURE_SENSOR_PIN); // read the input pin
-    psi = (rawPressureSensorInputValue - adjustedMinPressureSensorInputValue) * adjustedPressureSensorInputValueMultiplier;
-    if (abs(psi - prevPsi) >= PRESSURE_DELTA && PressureSensor::shouldSendPSI())
+    PressureSensor::psi = (rawPressureSensorInputValue - PressureSensor::adjustedMinPressureSensorInputValue) * PressureSensor::adjustedPressureSensorInputValueMultiplier;
+    if (abs(PressureSensor::psi - PressureSensor::prevPsi) >= PressureSensor::pressureDelta && PressureSensor::shouldSendPSI())
     {
-        prevPsi = psi;
-        lastPressureSendTime = millis();
+        PressureSensor::prevPsi = PressureSensor::psi;
+        PressureSensor::lastPressureSendTime = millis();
         Serial.print("raw: ");
         Serial.println(rawPressureSensorInputValue);
         Serial.print("PSI: ");
-        Serial.println(psi);
+        Serial.println(PressureSensor::psi);
         // only send a minimum of zero PSI
         // to not mess up the statistics/logs
-        if (psi > 0)
+        if (PressureSensor::psi > 0)
         {
-            psiSensor.setValue(psi);
+            PressureSensor::psiSensor.setValue(psi);
         }
         else
         {
-            psiSensor.setValue(float(0.0));
+            PressureSensor::psiSensor.setValue(float(0.0));
         }
     }
 }
