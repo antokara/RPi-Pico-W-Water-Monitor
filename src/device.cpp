@@ -1,5 +1,4 @@
 #include <ArduinoHA.h>
-// TODO: use def for OTA
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
