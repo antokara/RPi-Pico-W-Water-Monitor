@@ -15,15 +15,11 @@ bool Switches::isWaterLeakTestActive = false;
  */
 bool Switches::firstLoop = true;
 
-void Switches::onWaterLeakTestSwitchCommand(bool state, HASwitch *sender)
+void Switches::setIsWaterLeakTestActive(bool state)
 {
-    // report state back to the Home Assistant
-    sender->setState(state);
-
     // keep our local state
     Switches::isWaterLeakTestActive = state;
 
-    // make the changes necessary to enable this mode
     if (state)
     {
         // test mode needs high accuracy and refresh rate
@@ -36,6 +32,15 @@ void Switches::onWaterLeakTestSwitchCommand(bool state, HASwitch *sender)
         PressureSensor::pressureDelta = 1;
         PressureSensor::sendPressureFrequency = 30000;
     }
+}
+
+void Switches::onWaterLeakTestSwitchCommand(bool state, HASwitch *sender)
+{
+    // report state back to the Home Assistant
+    sender->setState(state);
+
+    // make the changes necessary to enable this mode
+    Switches::setIsWaterLeakTestActive(state);
 }
 
 void Switches::setup()
@@ -55,5 +60,6 @@ void Switches::loop()
     {
         Switches::firstLoop = false;
         Switches::waterLeakTestSwitch.setState(Switches::isWaterLeakTestActive);
+        Switches::setIsWaterLeakTestActive(Switches::isWaterLeakTestActive);
     }
 }
