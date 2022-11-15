@@ -117,6 +117,13 @@ copy `secrets.h.template` to `secrets.h` and insert values
 
 ## troubleshooting
 
+### debugging
+
+- in `main.cpp` uncomment the `#define SERIAL_DEBUG` and build/upload, to enable serial.print debug messages
+- alternatively, toggle the `waterMonitorDebug` switch from the controller, to enable MQTT print debug messages in the topics:
+  - `debug:waterMonitor:pulseSensor`
+  - `debug:waterMonitor:pressureSensor`
+
 ### clear arduino compile cache
 
 `rm /tmp/arduino* -rf`

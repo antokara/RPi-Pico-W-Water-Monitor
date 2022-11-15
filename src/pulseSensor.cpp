@@ -1,4 +1,6 @@
 #include <ArduinoHA.h>
+#include "device.h"
+#include "switches.h"
 #include "pulseSensor.h"
 
 // holds the last pulse sensor isActive state
@@ -157,20 +159,12 @@ void PulseSensor::updateIrSensorActive()
         // during initial run, just set the previous value to the current one
         // isIrSensorActive should already be set to false
         PulseSensor::prevIrValue = irSensorValue;
-        Serial.print("IR initial: ");
-        Serial.println(irSensorValue);
     }
     else if (abs(irSensorValue - PulseSensor::prevIrValue) > IR_DELTA_THRESHOLD)
     {
-        // Serial.print("IR > delta: ");
-        // Serial.println(irSensorValue);
         // when the delta is greater than the threshold
         // update the the last time we had a delta
         lastIrTime = millis();
-
-        // purely for debug
-        // TODO: place in IFDEF
-        int delta = abs(irSensorValue - PulseSensor::prevIrValue);
 
         // keep the last value
         PulseSensor::prevIrValue = irSensorValue;
@@ -195,23 +189,41 @@ void PulseSensor::updateIrSensorActive()
             // mark our IR sensor as active
             PulseSensor::isIrSensorActive = true;
 
+#ifdef SERIAL_DEBUG
             Serial.print("irCounts: ");
             Serial.print(PulseSensor::irCounts);
             Serial.print(", IR true with delta: ");
-            Serial.println(delta);
+            Serial.println(abs(irSensorValue - PulseSensor::prevIrValue));
+#endif
+            if (Switches::isDebugActive)
+            {
+                Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts: " + String(PulseSensor::irCounts) + ", IR TRUE with delta: " + abs(irSensorValue - PulseSensor::prevIrValue)).c_str());
+            }
         }
         else
         {
+#ifdef SERIAL_DEBUG
             Serial.print("irCounts: ");
             Serial.print(PulseSensor::irCounts);
             Serial.print(", IR delta: ");
-            Serial.println(delta);
+            Serial.println(abs(irSensorValue - PulseSensor::prevIrValue));
+#endif
+            if (Switches::isDebugActive)
+            {
+                Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts: " + String(PulseSensor::irCounts) + ", delta: " + abs(irSensorValue - PulseSensor::prevIrValue)).c_str());
+            }
         }
     }
     else if (PulseSensor::isIrSensorActive && abs(long(millis() - PulseSensor::lastIrTime)) > IR_TIMEOUT)
     {
+#ifdef SERIAL_DEBUG
         Serial.print("IR false with delta: ");
         Serial.println(abs(irSensorValue - PulseSensor::prevIrValue));
+#endif
+        if (Switches::isDebugActive)
+        {
+            Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts: " + String(PulseSensor::irCounts) + ", IR FALSE with delta: " + abs(irSensorValue - PulseSensor::prevIrValue)).c_str());
+        }
         // when the delta is less than the threshold and
         // the timeout period has passed, only then,
         // mark the sensor as inactive.
@@ -301,8 +313,15 @@ bool PulseSensor::isPulseSensorActive()
             // and it just turned active
             PulseSensor::lastPulseSensorIsActive = true;
 
-            // only the first time, return true
+#ifdef SERIAL_DEBUG
             Serial.println("lastPulseSensorIsActive true");
+#endif
+            if (Switches::isDebugActive)
+            {
+                Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, "lastPulseSensorIsActive true");
+            }
+
+            // only the first time, return true
             return PulseSensor::lastPulseSensorIsActive;
         }
     }
@@ -310,7 +329,14 @@ bool PulseSensor::isPulseSensorActive()
     {
         // it just turned inactive
         PulseSensor::lastPulseSensorIsActive = false;
+
+#ifdef SERIAL_DEBUG
         Serial.println("lastPulseSensorIsActive false");
+#endif
+        if (Switches::isDebugActive)
+        {
+            Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, "lastPulseSensorIsActive false");
+        }
     }
 
     // any other time, return inactive
@@ -426,7 +452,13 @@ void PulseSensor::loop()
         PulseSensor::sendGPM(true);
         digitalWrite(LED_BUILTIN, LOW);
 
+#ifdef SERIAL_DEBUG
         Serial.println("gpm stop - no pulse or flow");
+#endif
+        if (Switches::isDebugActive)
+        {
+            Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, "gpm stop - no pulse or flow");
+        }
     }
 
     // after all other checks have taken place and

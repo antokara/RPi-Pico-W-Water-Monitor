@@ -1,5 +1,6 @@
 #include <ArduinoHA.h>
 #include "device.h"
+#include "switches.h"
 #include "pressureSensor.h"
 
 /**
@@ -64,10 +65,18 @@ void PressureSensor::loop()
     {
         PressureSensor::prevPsi = PressureSensor::psi;
         PressureSensor::lastPressureSendTime = millis();
+
+#ifdef SERIAL_DEBUG
         Serial.print("raw: ");
         Serial.println(rawPressureSensorInputValue);
         Serial.print("PSI: ");
         Serial.println(PressureSensor::psi);
+#endif
+        if (Switches::isDebugActive)
+        {
+            Device::mqtt.publish(PRESSURE_SENSOR_DEBUG_MQTT_TOPIC, String("raw PSI input: " + String(rawPressureSensorInputValue) + ", PSI: " + String(PressureSensor::psi)).c_str());
+        }
+
         // only send a minimum of zero PSI
         // to not mess up the statistics/logs
         if (PressureSensor::psi > 0)

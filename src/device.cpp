@@ -57,13 +57,16 @@ void Device::connectToWifi()
   // connect to WiFi
   while (Device::wifiStatus != WL_CONNECTED)
   {
+#ifdef SERIAL_DEBUG
     Serial.print("Attempting to connect to WPA SSID: ");
     Serial.println(WIFI_SSID);
+#endif
     Device::wifiStatus = WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     // wait to connect...
     delay(WAIT_FOR_WIFI);
   }
 
+#ifdef SERIAL_DEBUG
   Serial.print("Connected to: ");
   Serial.print(WIFI_SSID);
   Serial.print(", with IP: ");
@@ -80,6 +83,7 @@ void Device::connectToWifi()
   Serial.print(mac[1], HEX);
   Serial.print(":");
   Serial.println(mac[0], HEX);
+#endif
 }
 
 /**
@@ -89,14 +93,20 @@ void Device::connectToWifi()
  */
 void Device::connectoMQTT()
 {
+#ifdef SERIAL_DEBUG
   Serial.print("Connecting to MQTT\n");
+#endif
   if (mqtt.begin(BROKER_ADDR, BROKER_PORT, BROKER_USERNAME, BROKER_PASSWORD) == true)
   {
+#ifdef SERIAL_DEBUG
     Serial.print("Connected to MQTT broker");
+#endif
   }
   else
   {
+#ifdef SERIAL_DEBUG
     Serial.print("Could not connect to MQTT broker");
+#endif
   }
 }
 
@@ -108,33 +118,59 @@ void Device::setupOTA()
 {
   ArduinoOTA.onStart([]()
                      {
-    String type;
-    if (ArduinoOTA.getCommand() == U_FLASH) {
-      type = "sketch";
-    } else {  // U_FS
-      type = "filesystem";
-    }
+                       String type;
+                       if (ArduinoOTA.getCommand() == U_FLASH)
+                       {
+                         type = "sketch";
+                       }
+                       else
+                       { // U_FS
+                         type = "filesystem";
+                       }
 
-    // NOTE: if updating FS this would be the place to unmount FS using FS.end()
-    Serial.println("Start updating " + type); });
+// NOTE: if updating FS this would be the place to unmount FS using FS.end()
+#ifdef SERIAL_DEBUG
+                       Serial.println("Start updating " + type);
+#endif
+                     });
   ArduinoOTA.onEnd([]()
-                   { Serial.println("\nEnd"); });
+                   {
+#ifdef SERIAL_DEBUG
+                     Serial.println("\nEnd");
+#endif
+                   });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total)
-                        { Serial.printf("Progress: %u%%\r", (progress / (total / 100))); });
+                        {
+#ifdef SERIAL_DEBUG
+                          Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+#endif
+                        });
   ArduinoOTA.onError([](ota_error_t error)
                      {
-    Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) {
-      Serial.println("Auth Failed");
-    } else if (error == OTA_BEGIN_ERROR) {
-      Serial.println("Begin Failed");
-    } else if (error == OTA_CONNECT_ERROR) {
-      Serial.println("Connect Failed");
-    } else if (error == OTA_RECEIVE_ERROR) {
-      Serial.println("Receive Failed");
-    } else if (error == OTA_END_ERROR) {
-      Serial.println("End Failed");
-    } });
+#ifdef SERIAL_DEBUG
+                       Serial.printf("Error[%u]: ", error);
+                       if (error == OTA_AUTH_ERROR)
+                       {
+                         Serial.println("Auth Failed");
+                       }
+                       else if (error == OTA_BEGIN_ERROR)
+                       {
+                         Serial.println("Begin Failed");
+                       }
+                       else if (error == OTA_CONNECT_ERROR)
+                       {
+                         Serial.println("Connect Failed");
+                       }
+                       else if (error == OTA_RECEIVE_ERROR)
+                       {
+                         Serial.println("Receive Failed");
+                       }
+                       else if (error == OTA_END_ERROR)
+                       {
+                         Serial.println("End Failed");
+                       }
+#endif
+                     });
   ArduinoOTA.begin();
 }
 
@@ -147,10 +183,11 @@ void Device::setup()
   // @see https://arduino-pico.readthedocs.io/en/latest/analog.html#void-analogreadresolution-int-bits
   analogReadResolution(ANALOG_READ_RESOLUTION);
 
-  // TODO: use DEBUG to disable
+#ifdef SERIAL_DEBUG
   Serial.begin(9600);
   delay(500); // Give the serial terminal a chance to connect, if present
   Serial.print("Device::Setup()");
+#endif
 
   Device::connectToWifi();
 

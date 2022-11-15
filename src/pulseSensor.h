@@ -2,6 +2,12 @@
 #define PULSE_SENSOR
 
 /**
+ * @brief the MQTT topic for debugging this sensor
+ *
+ */
+#define PULSE_SENSOR_DEBUG_MQTT_TOPIC "debug:waterMonitor:pulseSensor"
+
+/**
  * @brief frequency in milliseconds,
  * to allow sending of gallons to the controller
  *
@@ -28,17 +34,19 @@
 // you may use A0-A2
 #define IR_SENSOR_PIN A1
 
-// the delta we must calculate between two infrared sensor values
-// in order to be considered an actual change/motion
-// (true, when greater than)
-//
-// 2 is sensitive enough, with the IR_COUNTS_THRESHOLD (in zuno)
-// to not produce false positive flow but
-// it can produce false negative flow.
-// Raspberry Pi Pico W:
-// 6 too many false negatives
-// 4 we get 15-20 counts within 8secs when there's flow and ~5 with noise
-#define IR_DELTA_THRESHOLD 4
+/**
+ * @brief the delta we must calculate between two infrared sensor values
+ * in order to be considered an actual change/motion
+ * (true, when greater than)
+ *
+ * when on computer USB/power:
+ *  with 4, we get 15-20 counts within 8 secs, when there's low flow and ~5 with noise
+ *
+ * when on external power:
+ *  with 7, we get 30-70 counts within 8 secs, when there's low flow and ~5 with noise
+ *
+ */
+#define IR_DELTA_THRESHOLD 7
 
 // time in milliseconds that a delta lasts
 //

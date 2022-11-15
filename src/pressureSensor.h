@@ -3,6 +3,12 @@
 
 #include <ArduinoHA.h>
 
+/**
+ * @brief the MQTT topic for debugging this sensor
+ *
+ */
+#define PRESSURE_SENSOR_DEBUG_MQTT_TOPIC "debug:waterMonitor:pressureSensor"
+
 // the (analog) pin that we connect the pressure sensor output
 // you may use A0-A2
 #define PRESSURE_SENSOR_PIN A0
