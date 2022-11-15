@@ -66,6 +66,11 @@ long gallonsCounterBuffer = 0;
 // last time we sent the gallons counter
 unsigned long lastGallonsCounterSendTime = 0;
 
+// flag to keep track of the first loop
+bool pulseSensorFirstLoop = true;
+
+// TODO: scope all variables as class members
+
 // the water flow GPM sensor
 HASensorNumber gpmSensor("gpm", HASensorNumber::PrecisionP2);
 
@@ -190,7 +195,16 @@ void PulseSensor::updateIrSensorActive()
             // mark our IR sensor as active
             isIrSensorActive = true;
 
-            Serial.print("IR true with delta: ");
+            Serial.print("irCounts: ");
+            Serial.print(irCounts);
+            Serial.print(", IR true with delta: ");
+            Serial.println(delta);
+        }
+        else
+        {
+            Serial.print("irCounts: ");
+            Serial.print(irCounts);
+            Serial.print(", IR delta: ");
             Serial.println(delta);
         }
     }
@@ -326,6 +340,17 @@ void PulseSensor::setup()
 
 void PulseSensor::loop()
 {
+    /**
+     * @brief only on the first loop, reset the flow to zero,
+     * in case there was a previous flow that is now invalid.
+     *
+     */
+    if (pulseSensorFirstLoop)
+    {
+        pulseSensorFirstLoop = false;
+        gpmSensor.setValue(float(0.0));
+    }
+
     // update the value
     PulseSensor::updateIrSensorActive();
 

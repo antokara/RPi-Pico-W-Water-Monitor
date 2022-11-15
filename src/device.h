@@ -46,7 +46,7 @@ const float analogInputValueMultiplier = float(MAX_ANALOG_PIN_RANGE / MAX_ANALOG
  * @brief time in milliseconds to wait for the WiFi to connect
  *
  */
-#define WAIT_FOR_WIFI 3000
+#define WAIT_FOR_WIFI 5000
 
 class Device
 {

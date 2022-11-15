@@ -35,21 +35,23 @@
 // 2 is sensitive enough, with the IR_COUNTS_THRESHOLD (in zuno)
 // to not produce false positive flow but
 // it can produce false negative flow.
-// 15 appears to be good for Raspberry Pi Pico W
-#define IR_DELTA_THRESHOLD 15
+// Raspberry Pi Pico W:
+// 6 too many false negatives
+// 4 we get 15-20 counts within 8secs when there's flow and ~5 with noise
+#define IR_DELTA_THRESHOLD 4
 
 // time in milliseconds that a delta lasts
 //
 // 2500 does not produce false positive flow but produces false negative flow, at low GPM
 // 3500 no false positives but false negatives only at high GPM >6
 // 5000 no false positives but intermittent false negatives, again only at high GPM >6
-// 8000 no false positives, no false negatives
+// 8000 no false positives, no false negatives with >10 counts when with PC USB not external supply
 #define IR_TIMEOUT 8000
 
 // number of delta counts that need to happen within the timeout period
 // for the IR sensor to be considered ON (to avoid potential noise)
 // (true, when greater than)
-#define IR_COUNTS_THRESHOLD 1
+#define IR_COUNTS_THRESHOLD 10
 
 // minimum gallons per minute that the water meter can detect.
 // this helps us detect no-flow, by calculating a "time-out" when
