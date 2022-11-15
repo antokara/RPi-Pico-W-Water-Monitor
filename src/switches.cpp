@@ -10,6 +10,11 @@ HASwitch Switches::waterLeakTestSwitch("waterLeakTest");
  */
 bool Switches::isWaterLeakTestActive = false;
 
+/**
+ * @brief to keep track of the first loop iteration
+ */
+bool Switches::firstLoop = true;
+
 void Switches::onWaterLeakTestSwitchCommand(bool state, HASwitch *sender)
 {
     // report state back to the Home Assistant
