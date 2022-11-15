@@ -15,8 +15,7 @@ public:
     // methods
     static void setup();
     static void loop();
-    static void onWaterLeakTestSwitchCommand(bool state, HASwitch *sender);
-    static void onWaterMonitorDebugSwitchCommand(bool state, HASwitch *sender);
+    static void onSwitchCommand(bool state, HASwitch *sender);
 
 private:
     static void setIsWaterLeakTestActive(bool state);

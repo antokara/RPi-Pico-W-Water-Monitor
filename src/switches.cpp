@@ -2,8 +2,8 @@
 #include "switches.h"
 #include "pressureSensor.h"
 
-HASwitch Switches::waterLeakTestSwitch("waterMonitorLeakTest");
 HASwitch Switches::debugSwitch("waterMonitorDebug");
+HASwitch Switches::waterLeakTestSwitch("waterMonitorLeakTest");
 
 /**
  * @brief controls the Water Leak Test mode of the device
@@ -51,38 +51,30 @@ void Switches::setIsDebugActive(bool state)
  *
  * @param state
  */
-void Switches::onWaterLeakTestSwitchCommand(bool state, HASwitch *sender)
+void Switches::onSwitchCommand(bool state, HASwitch *sender)
 {
+    if (sender == &Switches::waterLeakTestSwitch)
+    {
+        Switches::setIsWaterLeakTestActive(state);
+    }
+    else if (sender == &Switches::debugSwitch)
+    {
+        Switches::setIsDebugActive(state);
+    }
+
     // report state back to the Home Assistant
     sender->setState(state);
-
-    // make the changes necessary to enable this mode
-    Switches::setIsWaterLeakTestActive(state);
-}
-
-/**
- * @brief called when state changes remotely, from the controller
- *
- * @param state
- */
-void Switches::onWaterMonitorDebugSwitchCommand(bool state, HASwitch *sender)
-{
-    // report state back to the Home Assistant
-    sender->setState(state);
-
-    // make the changes necessary to enable this mode
-    Switches::setIsDebugActive(state);
 }
 
 void Switches::setup()
 {
+    Switches::debugSwitch.setIcon("mdi:test-tube");
+    Switches::debugSwitch.setName("Water Monitor Debug");
+    Switches::debugSwitch.onCommand(Switches::onSwitchCommand);
+
     Switches::waterLeakTestSwitch.setIcon("mdi:water-alert-outline");
     Switches::waterLeakTestSwitch.setName("Water Leak Test");
-    Switches::waterLeakTestSwitch.onCommand(Switches::onWaterLeakTestSwitchCommand);
-
-    // Switches::debugSwitch.setIcon("mdi:test-tube");
-    Switches::debugSwitch.setName("Water Monitor Debug");
-    Switches::debugSwitch.onCommand(Switches::onWaterMonitorDebugSwitchCommand);
+    Switches::waterLeakTestSwitch.onCommand(Switches::onSwitchCommand);
 }
 
 void Switches::loop()
@@ -94,8 +86,8 @@ void Switches::loop()
     if (Switches::firstLoop)
     {
         Switches::firstLoop = false;
+        Switches::debugSwitch.setState(Switches::isDebugActive);
         Switches::setIsWaterLeakTestActive(Switches::isWaterLeakTestActive);
         Switches::waterLeakTestSwitch.setState(Switches::isWaterLeakTestActive);
-        Switches::debugSwitch.setState(Switches::isDebugActive);
     }
 }
