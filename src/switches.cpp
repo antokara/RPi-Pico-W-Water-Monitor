@@ -80,9 +80,9 @@ void Switches::setup()
     Switches::waterLeakTestSwitch.setName("Water Leak Test");
     Switches::waterLeakTestSwitch.onCommand(Switches::onWaterLeakTestSwitchCommand);
 
-    Switches::waterLeakTestSwitch.setIcon("mdi:test-tube");
-    Switches::waterLeakTestSwitch.setName("Debug");
-    Switches::waterLeakTestSwitch.onCommand(Switches::onWaterMonitorDebugSwitchCommand);
+    Switches::debugSwitch.setIcon("mdi:test-tube");
+    Switches::debugSwitch.setName("Debug");
+    Switches::debugSwitch.onCommand(Switches::onWaterMonitorDebugSwitchCommand);
 }
 
 void Switches::loop()
@@ -96,6 +96,6 @@ void Switches::loop()
         Switches::firstLoop = false;
         Switches::setIsWaterLeakTestActive(Switches::isWaterLeakTestActive);
         Switches::waterLeakTestSwitch.setState(Switches::isWaterLeakTestActive);
-        Switches::waterLeakTestSwitch.setState(Switches::isDebugActive);
+        Switches::debugSwitch.setState(Switches::isDebugActive);
     }
 }
