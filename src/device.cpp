@@ -37,7 +37,10 @@ int Device::wifiStatus;
 
 WiFiClient Device::client;
 HADevice Device::device(DEVICE_ID);
-HAMqtt Device::mqtt(client, device);
+
+// increase the device types limit, otherwise, some of the sensors/switches will not get registered
+// @see https://dawidchyrzynski.github.io/arduino-home-assistant/documents/library/device-types.html#limitations
+HAMqtt Device::mqtt(Device::client, Device::device, 7);
 
 /**
  * @brief a status string sensor

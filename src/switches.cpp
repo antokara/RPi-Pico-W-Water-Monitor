@@ -2,8 +2,8 @@
 #include "switches.h"
 #include "pressureSensor.h"
 
-HASwitch Switches::debugSwitch("waterMonitorDebug");
 HASwitch Switches::waterLeakTestSwitch("waterMonitorLeakTest");
+HASwitch Switches::debugSwitch("waterMonitorDebug");
 
 /**
  * @brief controls the Water Leak Test mode of the device
@@ -68,13 +68,13 @@ void Switches::onSwitchCommand(bool state, HASwitch *sender)
 
 void Switches::setup()
 {
-    Switches::debugSwitch.setIcon("mdi:test-tube");
-    Switches::debugSwitch.setName("Water Monitor Debug");
-    Switches::debugSwitch.onCommand(Switches::onSwitchCommand);
-
     Switches::waterLeakTestSwitch.setIcon("mdi:water-alert-outline");
     Switches::waterLeakTestSwitch.setName("Water Leak Test");
     Switches::waterLeakTestSwitch.onCommand(Switches::onSwitchCommand);
+
+    Switches::debugSwitch.setIcon("mdi:test-tube");
+    Switches::debugSwitch.setName("Water Monitor Debug");
+    Switches::debugSwitch.onCommand(Switches::onSwitchCommand);
 }
 
 void Switches::loop()
@@ -86,8 +86,8 @@ void Switches::loop()
     if (Switches::firstLoop)
     {
         Switches::firstLoop = false;
-        Switches::debugSwitch.setState(Switches::isDebugActive);
         Switches::setIsWaterLeakTestActive(Switches::isWaterLeakTestActive);
         Switches::waterLeakTestSwitch.setState(Switches::isWaterLeakTestActive);
+        Switches::debugSwitch.setState(Switches::isDebugActive);
     }
 }

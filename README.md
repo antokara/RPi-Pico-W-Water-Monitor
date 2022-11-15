@@ -111,6 +111,10 @@ Until PlatformIO properly [supports pico w](https://github.com/platformio/platfo
    1. if not, make sure you have installed the udev rules properly...
    1. warning: Upload over USB is [not possible currently on Chromebooks](https://bugs.chromium.org/p/chromium/issues/detail?id=980456). Therefore, the first upload MUST take place from another O/S (ie. Fedora) and subsequent uploads can happen OTA from Chromebook
 
+### hostname
+
+the device should get `waterMonitor.local` as a hostname on the local network
+
 ### secrets
 
 copy `secrets.h.template` to `secrets.h` and insert values
