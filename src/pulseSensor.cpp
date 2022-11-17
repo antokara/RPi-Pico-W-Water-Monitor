@@ -166,6 +166,9 @@ void PulseSensor::updateIrSensorActive()
         // update the the last time we had a delta
         lastIrTime = millis();
 
+        // keep for debug, before we change the prevIrValue
+        int delta = abs(irSensorValue - prevIrValue);
+
         // keep the last value
         PulseSensor::prevIrValue = irSensorValue;
 
@@ -193,11 +196,11 @@ void PulseSensor::updateIrSensorActive()
             Serial.print("irCounts: ");
             Serial.print(PulseSensor::irCounts);
             Serial.print(", IR true with delta: ");
-            Serial.println(abs(irSensorValue - PulseSensor::prevIrValue));
+            Serial.println(delta);
 #endif
             if (Switches::isDebugActive)
             {
-                Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts: " + String(PulseSensor::irCounts) + ", IR TRUE with delta: " + abs(irSensorValue - PulseSensor::prevIrValue)).c_str());
+                Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts: " + String(PulseSensor::irCounts) + ", IR TRUE with delta: " + delta).c_str());
             }
         }
         else
@@ -206,11 +209,11 @@ void PulseSensor::updateIrSensorActive()
             Serial.print("irCounts: ");
             Serial.print(PulseSensor::irCounts);
             Serial.print(", IR delta: ");
-            Serial.println(abs(irSensorValue - PulseSensor::prevIrValue));
+            Serial.println(delta);
 #endif
             if (Switches::isDebugActive)
             {
-                Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts: " + String(PulseSensor::irCounts) + ", delta: " + abs(irSensorValue - PulseSensor::prevIrValue)).c_str());
+                Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts: " + String(PulseSensor::irCounts) + ", delta: " + delta).c_str());
             }
         }
     }
