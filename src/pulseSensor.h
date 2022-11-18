@@ -42,8 +42,8 @@
  * when on computer USB/power:
  *  with 4, we get 15-20 counts within 8 secs, when there's low flow and ~5 with noise
  *
- * when on external power:
- *  with 7, we get 30-70 counts within 8 secs, when there's low flow and ~5 with noise
+ * when on stable/clean external power:
+ *  with 4, we get 10-20 counts within 8 secs, when there's low flow and 0 with noise
  *
  */
 #define IR_DELTA_THRESHOLD 4
@@ -59,7 +59,7 @@
 // number of delta counts that need to happen within the timeout period
 // for the IR sensor to be considered ON (to avoid potential noise)
 // (true, when greater than)
-#define IR_COUNTS_THRESHOLD 20
+#define IR_COUNTS_THRESHOLD 10
 
 // minimum gallons per minute that the water meter can detect.
 // this helps us detect no-flow, by calculating a "time-out" when
