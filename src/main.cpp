@@ -14,7 +14,7 @@ void setup()
     PulseSensor::setup();
     PressureSensor::setup();
     // after everything is setup...
-    Device::connectoMQTT();
+    Device::connectToMQTT();
 }
 
 void loop()

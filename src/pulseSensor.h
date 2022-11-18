@@ -46,7 +46,7 @@
  *  with 7, we get 30-70 counts within 8 secs, when there's low flow and ~5 with noise
  *
  */
-#define IR_DELTA_THRESHOLD 7
+#define IR_DELTA_THRESHOLD 4
 
 // time in milliseconds that a delta lasts
 //

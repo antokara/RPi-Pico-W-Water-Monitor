@@ -32,9 +32,23 @@
  */
 const float Device::analogInputValueMultiplier = float(MAX_ANALOG_PIN_RANGE / MAX_ANALOG_PIN_RANGE_VOLTAGE);
 
+/**
+ * @brief Wifi status as of last check.
+ * Hence, it may not be up to date on every loop iteration.
+ */
 int Device::wifiStatus;
 
+/**
+ * @brief the wifi client
+ *
+ */
 WiFiClient Device::client;
+
+/**
+ * @brief the Home Assistant device
+ *
+ * @return HADevice
+ */
 HADevice Device::device(DEVICE_ID);
 
 // increase the device types limit, otherwise, some of the sensors/switches will not get registered
@@ -47,8 +61,20 @@ HAMqtt Device::mqtt(Device::client, Device::device, 7);
  */
 HASensor Device::statusSensor("waterMonitorStatus");
 
-// flag to keep track of the first loop
+/**
+ * @brief flag to keep track of the first loop
+ */
 bool Device::firstLoop = true;
+
+/**
+ * @brief last time we performed a wifi check (ie. if still connected or not)
+ */
+unsigned long Device::lastWifiCheck = millis();
+
+/**
+ * @brief last time we sent a heartbit to the controller
+ */
+unsigned long Device::lastHeartbit = millis();
 
 void Device::connectToWifi()
 {
@@ -93,7 +119,7 @@ void Device::connectToWifi()
  *        it should be called after the device, controls and sensors have been defined.
  *
  */
-void Device::connectoMQTT()
+void Device::connectToMQTT()
 {
 #ifdef SERIAL_DEBUG
   Serial.print("Connecting to MQTT\n");
@@ -179,6 +205,38 @@ void Device::setupOTA()
 }
 
 /**
+ * @brief checks periodically if the WiFi connection is still connected and
+ * attempts to reconnect if not connected.
+ *
+ */
+void Device::wifiLoop()
+{
+  if (abs(long(millis() - Device::lastWifiCheck)) > WIFI_CHECK_FREQUENCY)
+  {
+    Device::lastWifiCheck = millis();
+    Device::wifiStatus = WiFi.status();
+    if (Device::wifiStatus != WL_CONNECTED || !Device::client.connected())
+    {
+      Device::client.stop();
+      Device::connectToWifi();
+    }
+  }
+}
+
+/**
+ * @brief checks periodically if we need to send a heartbit status
+ * to the controller and if yes, it sends it
+ */
+void Device::heartbitLoop()
+{
+  if (abs(long(millis() - Device::lastHeartbit)) > HEARTBIT_FREQUENCY)
+  {
+    Device::lastHeartbit = millis();
+    Device::statusSensor.setValue(STATUS_READY);
+  }
+}
+
+/**
  * @brief should be called once, from the main setup() function
  *
  */
@@ -207,6 +265,7 @@ void Device::setup()
   // set the status sensor details
   Device::statusSensor.setName("Status");
   Device::statusSensor.setIcon("mdi:check-circle");
+  Device::statusSensor.setForceUpdate(true);
 
   // enable OTA
   Device::setupOTA();
@@ -233,11 +292,16 @@ void Device::loop()
   if (Device::firstLoop)
   {
     Device::firstLoop = false;
-    Device::statusSensor.setValue("connected");
+    Device::statusSensor.setValue(STATUS_CONNECTED);
     // allow mqtt to send the "connected" value before changing it to "ready"
     mqtt.loop();
     delay(250);
-    Device::statusSensor.setValue("ready");
+    Device::statusSensor.setValue(STATUS_READY);
   }
-  // TODO: check WiFi and reconnect if dropped;; TEST it
+
+  // check if wifi is still connected, etc.
+  Device::wifiLoop();
+
+  // check if we need to send heartbit to controller
+  Device::heartbitLoop();
 }
