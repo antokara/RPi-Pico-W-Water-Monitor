@@ -40,13 +40,13 @@
  * (true, when greater than)
  *
  * when on computer USB/power:
- *  with 4, we get 15-20 counts within 8 secs, when there's low flow and ~5 with noise
+ *  with 4, we get 15-20 counts within 8 secs, when there's low flow and ~5 with no flow/noise
  *
  * when on stable/clean external power:
- *  with 4, we get 10-20 counts within 8 secs, when there's low flow and 0 with noise
+ *  with 4, we get 10-20 counts within 8 secs, when there's low flow and ~1 with no flow/noise
  *
  */
-#define IR_DELTA_THRESHOLD 4
+#define IR_DELTA_THRESHOLD 3
 
 // time in milliseconds that a delta lasts
 //
