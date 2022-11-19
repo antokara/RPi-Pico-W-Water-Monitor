@@ -29,14 +29,14 @@ void Switches::setIsWaterLeakTestActive(bool state)
     if (state)
     {
         // test mode needs high accuracy and refresh rate
-        PressureSensor::pressureDelta = 0.1;
-        PressureSensor::sendPressureFrequency = 5000;
+        PressureSensor::pressureDelta = PRESSURE_SENSOR_DELTA_WATER_LEAK_TEST_ACTIVE;
+        PressureSensor::sendPressureFrequency = PRESSURE_SENSOR_SEND_FREQUENCY_WATER_LEAK_TEST_ACTIVE;
     }
     else
     {
         // normal mode does not need high accuracy or refresh rate
-        PressureSensor::pressureDelta = 1;
-        PressureSensor::sendPressureFrequency = 30000;
+        PressureSensor::pressureDelta = PRESSURE_SENSOR_DELTA;
+        PressureSensor::sendPressureFrequency = PRESSURE_SENSOR_SEND_FREQUENCY;
     }
 }
 

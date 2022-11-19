@@ -7,15 +7,21 @@
  * @brief the delta in PSI that must be great or equal to,
  * between the previous reading and the current,
  * in order to consider updating it and sending it to the controller
+ *
+ * note: this changes depending on the mode (ie. water leak test active)
+ * @see src/switches.cpp
  */
-float PressureSensor::pressureDelta = 0.1;
+float PressureSensor::pressureDelta = PRESSURE_SENSOR_DELTA;
 
 /**
  * @brief frequency in milliseconds,
  * to allow sending of the water pressure to the controller,
  * even if the delta is greater.
+ *
+ * note: this changes depending on the mode (ie. water leak test active)
+ * @see src/switches.cpp
  */
-unsigned int PressureSensor::sendPressureFrequency = 5000;
+unsigned int PressureSensor::sendPressureFrequency = PRESSURE_SENSOR_SEND_FREQUENCY;
 
 // the adjusted/actual minimum/max input value the pressure sensor pin can provide,
 const float PressureSensor::adjustedMinPressureSensorInputValue = Device::analogInputValueMultiplier * MIN_PRESSURE_SENSOR_VOLTAGE;

@@ -9,6 +9,32 @@
  */
 #define PRESSURE_SENSOR_DEBUG_MQTT_TOPIC "debug:waterMonitor:pressureSensor"
 
+/**
+ * @brief the delta that the pressure sensor needs to have between previous and current value,
+ * in order to quality to be sent to the controller, during a water leak test mode.
+ */
+#define PRESSURE_SENSOR_DELTA_WATER_LEAK_TEST_ACTIVE 0.1
+
+/**
+ * @brief the time frequency in milliseconds that needs to pass from the last time
+ * we sent the pressure to the controller, in order to quality for sending the new value,
+ * during a water leak test mode.
+ */
+#define PRESSURE_SENSOR_SEND_FREQUENCY_WATER_LEAK_TEST_ACTIVE 5000
+
+/**
+ * @brief the delta that the pressure sensor needs to have between previous and current value,
+ * in order to quality to be sent to the controller, during normal operation mode.
+ */
+#define PRESSURE_SENSOR_DELTA 2
+
+/**
+ * @brief the time frequency in milliseconds that needs to pass from the last time
+ * we sent the pressure to the controller, in order to quality for sending the new value,
+ * during normal operation mode.
+ */
+#define PRESSURE_SENSOR_SEND_FREQUENCY 15000
+
 // the (analog) pin that we connect the pressure sensor output
 // you may use A0-A2
 #define PRESSURE_SENSOR_PIN A0
