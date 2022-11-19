@@ -43,7 +43,10 @@
  *  with 4, we get 15-20 counts within 8 secs, when there's low flow and ~5 with no flow/noise
  *
  * when on stable/clean external power:
- *  with 4, we get 10-20 counts within 8 secs, when there's low flow and ~1 with no flow/noise
+ *  with 3, we get 10-20 counts within 8 secs, when there's low flow and ~1 with no flow/noise
+ *  with delta 3, timeout 4000 and no flow, we get: 1-7
+ *  with delta 3, timeout 4000 and low flow, we get: 10-13
+ *  conclusion delta 3 and timeout 4000 is probably the lowest and "safe" we can go
  *
  */
 #define IR_DELTA_THRESHOLD 3
@@ -54,7 +57,7 @@
 // 3500 no false positives but false negatives only at high GPM >6
 // 5000 no false positives but intermittent false negatives, again only at high GPM >6
 // 8000 no false positives, no false negatives with >10 counts when with PC USB not external supply
-#define IR_TIMEOUT 8000
+#define IR_TIMEOUT 4000
 
 // number of delta counts that need to happen within the timeout period
 // for the IR sensor to be considered ON (to avoid potential noise)
