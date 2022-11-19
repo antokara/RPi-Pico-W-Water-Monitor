@@ -46,7 +46,7 @@
  *  with 3, we get 10-20 counts within 8 secs, when there's low flow and ~1 with no flow/noise
  *  with delta 3, timeout 4000 and no flow, we get: 1-7
  *  with delta 3, timeout 4000 and low flow, we get: 10-13
- *  conclusion delta 3 and timeout 4000 is probably the lowest and "safe" we can go
+ *  conclusion: delta 3, timeout 4000 and count 10, is probably the lowest and "safe" we can go
  *
  */
 #define IR_DELTA_THRESHOLD 3
