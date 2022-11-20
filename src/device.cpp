@@ -217,7 +217,7 @@ void Device::wifiLoop()
     Device::wifiStatus = WiFi.status();
     if (Device::wifiStatus != WL_CONNECTED || !Device::client.connected())
     {
-      Device::client.stop();
+      WiFi.disconnect();
       Device::connectToWifi();
     }
   }
