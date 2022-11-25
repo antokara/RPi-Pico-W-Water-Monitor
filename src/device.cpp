@@ -267,9 +267,18 @@ void Device::setup()
    * @see https://dawidchyrzynski.github.io/arduino-home-assistant/documents/library/availability-reporting.html#mqtt-lwt
    *
    * Important:
-   * We will not use LWT because it messes with the logged data and triggers that depend on numeric values and their duration.
-   * basically if a sensor becomes intermittently unavailable, the duration "resets" when the sensor becames available.
-   * however, if a sensor becomes unavailable and remains unavailable, the duration remains since the last event before becoming unavailable.
+   *  We can not use LWT because it messes with the logged data and triggers, that depend on numeric values and/or their duration.
+   *  If a sensor becomes intermittently unavailable, the duration of the last "trigger event", "resets" when the sensor becames available again.
+   *  However, if a sensor becomes unavailable and remains unavailable, the duration remains, since the last event before becoming unavailable.
+   *
+   *  This means that if we try to determine continious water flow for X minutes and within those minutes the LWT triggers intermittently,
+   *  the X minutes duration, will reset/start all over from the point in time the device became available again.
+   *  This could easily lead to false negative triggers and we have to be pessimistic with our data/triggers and err on the safe side.
+   *
+   *  --This commented code and note remain here, to avoid adding this function back in the future--
+   *
+   *  Having said all the above, without LWT, you will have to utilize the statusSensor heartbit,
+   *  in order to "manually" determine if the device is alive or not and take the appropriate action(s).
    */
   // Device::device.enableSharedAvailability();
   // Device::device.enableLastWill();
