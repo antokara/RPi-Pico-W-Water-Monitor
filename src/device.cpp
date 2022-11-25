@@ -258,16 +258,21 @@ void Device::setup()
   Device::device.setSoftwareVersion(FIRMWARE_VERSION);
 
   /**
-   * @brief enable shared availability and MQTT LWT feature.
+   * @brief shared availability and MQTT LWT feature.
    * Meaning, if device will lose connection to the broker,
    * all device types related to it will be marked as offline in the Home Assistant Panel.
    *
    * This is useful to know if the device has gone offline (due to power outage, WiFi, etc.)
    *
    * @see https://dawidchyrzynski.github.io/arduino-home-assistant/documents/library/availability-reporting.html#mqtt-lwt
+   *
+   * Important:
+   * We will not use LWT because it messes with the logged data and triggers that depend on numeric values and their duration.
+   * basically if a sensor becomes intermittently unavailable, the duration "resets" when the sensor becames available.
+   * however, if a sensor becomes unavailable and remains unavailable, the duration remains since the last event before becoming unavailable.
    */
-  Device::device.enableSharedAvailability();
-  Device::device.enableLastWill();
+  // Device::device.enableSharedAvailability();
+  // Device::device.enableLastWill();
 
   // set the status sensor details
   Device::statusSensor.setName("Status");
