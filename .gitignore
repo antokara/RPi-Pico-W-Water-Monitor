@@ -5,3 +5,8 @@ secrets.h
 
 # generated during build/upload
 *.ino.cpp
+
+# KiCad
+KiCad/design/design-backups
+KiCad/design/#auto_saved_files#
+KiCad/design/fp-info-cache
