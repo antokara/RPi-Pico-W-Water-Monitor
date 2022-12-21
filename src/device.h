@@ -9,6 +9,9 @@
 #define DEVICE_NAME "Water Monitor"
 #define FIRMWARE_VERSION "1.0.0"
 
+// uncomment to enable serial.print debug messages
+// #define SERIAL_DEBUG
+
 /**
  * @brief the bits to use for analog pin resolution
  * @see https://arduino-pico.readthedocs.io/en/latest/analog.html#void-analogreadresolution-int-bits

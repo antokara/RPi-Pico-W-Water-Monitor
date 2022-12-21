@@ -4,9 +4,6 @@
 #include "pressureSensor.h"
 #include "switches.h"
 
-// uncomment to enable serial.print debug messages
-// #define SERIAL_DEBUG
-
 void setup()
 {
     Device::setup();
