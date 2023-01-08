@@ -39,6 +39,12 @@
 #define WAIT_FOR_WIFI 5000
 
 /**
+ * @brief time in milliseconds to wait for the MQTT to connect/reconnect
+ *
+ */
+#define WAIT_FOR_MQTT 2500
+
+/**
  * @brief frequence in milliseconds,
  * to check for the Wifi connection status
  */

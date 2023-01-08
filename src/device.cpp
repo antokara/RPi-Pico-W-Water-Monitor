@@ -124,18 +124,16 @@ void Device::connectToMQTT()
 #ifdef SERIAL_DEBUG
   Serial.print("Connecting to MQTT\n");
 #endif
-  if (mqtt.begin(BROKER_ADDR, BROKER_PORT, BROKER_USERNAME, BROKER_PASSWORD) == true)
+  while (Device::mqtt.begin(BROKER_ADDR, BROKER_PORT, BROKER_USERNAME, BROKER_PASSWORD) != true)
   {
-#ifdef SERIAL_DEBUG
-    Serial.print("Connected to MQTT broker");
-#endif
-  }
-  else
-  {
+    delay(WAIT_FOR_MQTT);
 #ifdef SERIAL_DEBUG
     Serial.print("Could not connect to MQTT broker");
 #endif
   }
+#ifdef SERIAL_DEBUG
+  Serial.print("Connected to MQTT broker");
+#endif
 }
 
 /**
@@ -315,7 +313,7 @@ void Device::loop()
     Device::firstLoop = false;
     Device::statusSensor.setValue(STATUS_CONNECTED);
     // allow mqtt to send the "connected" value before changing it to "ready"
-    mqtt.loop();
+    Device::mqtt.loop();
     delay(250);
     Device::statusSensor.setValue(STATUS_READY);
   }
