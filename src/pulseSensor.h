@@ -24,6 +24,21 @@
  */
 #define SEND_GPM_FREQUENCY 1000
 
+/**
+ * @brief frequency in milliseconds,
+ * to allow re-sending of water flow GPM to the controller
+ * after the GPM drops to zero. This is an attempt to have
+ * better chances of the controller receiving and processing the new flow.
+ * (mostly for the stop-flow event).
+ */
+#define RESEND_GPM_FREQUENCY 2000
+
+/**
+ * @brief how many times to resend. (0 will be no resend, just the original send)
+ * this only applies if/while the value has not changed.
+ */
+#define RESEND_GPM_TIMES 1
+
 // the (digital) pin that we need to connect the water meter pulse switch.
 // the other end, needs to go the ground (GND) pin
 // you may use D0-D22 which correlates to GP0-GP22
@@ -93,7 +108,9 @@ public:
     static float gpm;
     static float lastGpmSent;
     static unsigned long lastGpmSendTime;
+    static unsigned long lastGpmResendTime;
     static unsigned int flowTimeout;
+    static unsigned int gpmResendTimes;
     static unsigned long lastIrTime;
     static unsigned long fistIrTime;
     static int prevIrValue;
@@ -109,6 +126,7 @@ public:
     // methods
     static bool shouldSendGallonsCounter();
     static void checkGallonsCounter();
+    static void checkResendGPM();
     static void increaseGallonsCounter();
     static void updateIrSensorActive();
     static unsigned long timePassedSinceLastPulse(bool actual);

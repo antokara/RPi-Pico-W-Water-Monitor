@@ -38,8 +38,14 @@ float PulseSensor::lastGpmSent = 0.0;
 // last time we sent the gpm
 unsigned long PulseSensor::lastGpmSendTime = 0;
 
+// last time we resent the gpm
+unsigned long PulseSensor::lastGpmResendTime = 0;
+
 // time that must pass without a pulse, in order to be considered no-flow
 unsigned int PulseSensor::flowTimeout = 0;
+
+// how many times we have resent, so far
+unsigned int PulseSensor::gpmResendTimes = 0;
 
 // last time we got an infrared delta
 unsigned long PulseSensor::lastIrTime = 0;
@@ -294,7 +300,28 @@ void PulseSensor::sendGPM(bool force = false)
     {
         PulseSensor::lastGpmSent = gpm;
         PulseSensor::lastGpmSendTime = millis();
-        PulseSensor::gpmSensor.setValue(gpm);
+        PulseSensor::gpmSensor.setValue(PulseSensor::gpm);
+        // reset the resend, so that we can start resending the GPM if we want
+        PulseSensor::gpmResendTimes = 0;
+        PulseSensor::lastGpmResendTime = millis();
+    }
+}
+
+/**
+ * @brief checks if we need to resend te GPM and also sends it if needed.
+ * currently, it only resends the already sent 0.0 GPM (stop-flow event)
+ */
+void PulseSensor::checkResendGPM()
+{
+    if (PulseSensor::lastGpmSent == PulseSensor::gpm && PulseSensor::gpm == 0.0 && PulseSensor::gpmResendTimes < RESEND_GPM_TIMES && abs(long(millis() - PulseSensor::lastGpmResendTime)) > RESEND_GPM_FREQUENCY)
+    {
+        PulseSensor::gpmResendTimes++;
+        PulseSensor::lastGpmResendTime = millis();
+        PulseSensor::gpmSensor.setValue(PulseSensor::gpm, true);
+        if (Switches::isDebugActive)
+        {
+            Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, "gpm resend");
+        }
     }
 }
 
@@ -468,4 +495,7 @@ void PulseSensor::loop()
     // after all other checks have taken place and
     // any data has been sent, check if we need to set/reset the gallons counter
     PulseSensor::checkGallonsCounter();
+
+    // check if we need to resend the GPM
+    PulseSensor::checkResendGPM();
 }
