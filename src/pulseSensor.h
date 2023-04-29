@@ -37,7 +37,7 @@
  * @brief how many times to resend. (0 will be no resend, just the original send)
  * this only applies if/while the value has not changed.
  */
-#define RESEND_GPM_TIMES 2
+#define RESEND_GPM_TIMES 1
 
 // the (digital) pin that we need to connect the water meter pulse switch.
 // the other end, needs to go the ground (GND) pin

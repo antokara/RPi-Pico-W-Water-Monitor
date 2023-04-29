@@ -63,6 +63,12 @@
 #define STATUS_CONNECTED "connected"
 
 /**
+ * @brief the status we send when we reconnect to the controller
+ * after a WiFi disconnection
+ */
+#define STATUS_RECONNECTED "reconnected"
+
+/**
  * @brief the status we send to to controller, after the first loop iteration
  * to signify we are ready and also as a heartbit
  */
@@ -79,12 +85,14 @@ public:
     static HAMqtt mqtt;
     static HASensor statusSensor;
     static bool firstLoop;
+    static bool reconnected;
     static unsigned long lastWifiCheck;
     static unsigned long lastHeartbit;
 
     // methods
     static void connectToMQTT();
     static void connectToWifi();
+    static bool isConnected();
     static void wifiLoop();
     static void heartbitLoop();
     static void setupOTA();

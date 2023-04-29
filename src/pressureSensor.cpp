@@ -87,11 +87,20 @@ void PressureSensor::loop()
         // to not mess up the statistics/logs
         if (PressureSensor::psi > 0)
         {
-            PressureSensor::psiSensor.setValue(psi);
+            PressureSensor::psiSensor.setValue(PressureSensor::psi);
         }
         else
         {
             PressureSensor::psiSensor.setValue(float(0.0));
         }
+    }
+    else if (Device::reconnected)
+    {
+        /**
+         * @brief only upon reconnection (the reconnect flag lasts only one loop)
+         * send the current GPM to the controller, in case for example, the flow stopped
+         * while we were disconnected, so that the controller gets this value "update"...
+         */
+        PressureSensor::psiSensor.setValue(PressureSensor::psi, true);
     }
 }

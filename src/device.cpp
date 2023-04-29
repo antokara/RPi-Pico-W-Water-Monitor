@@ -67,6 +67,11 @@ HASensor Device::statusSensor("waterMonitorStatus");
 bool Device::firstLoop = true;
 
 /**
+ * @brief flag to keep track of when we just reconnected
+ */
+bool Device::reconnected = false;
+
+/**
  * @brief last time we performed a wifi check (ie. if still connected or not)
  */
 unsigned long Device::lastWifiCheck = millis();
@@ -203,20 +208,48 @@ void Device::setupOTA()
 }
 
 /**
+ * @brief let's us know if everything is connected and therefore,
+ * "safe" to send data to the controller
+ *
+ * @return true when WiFi and everything else is connected
+ * @return false when disconnected
+ */
+bool Device::isConnected()
+{
+  return Device::wifiStatus != WL_CONNECTED || !Device::client.connected();
+}
+
+/**
  * @brief checks periodically if the WiFi connection is still connected and
  * attempts to reconnect if not connected.
  *
  */
 void Device::wifiLoop()
 {
+  if (Device::reconnected)
+  {
+    // clear the reconnected flag
+    Device::reconnected = false;
+  }
+
   if (abs(long(millis() - Device::lastWifiCheck)) > WIFI_CHECK_FREQUENCY)
   {
     Device::lastWifiCheck = millis();
     Device::wifiStatus = WiFi.status();
-    if (Device::wifiStatus != WL_CONNECTED || !Device::client.connected())
+    if (Device::isConnected())
     {
       WiFi.disconnect();
       Device::connectToWifi();
+      // we just reconnected to the WiFi
+      // set this flag, it will be reset on the next iteration (see above)
+      // this flag lets the whole application know, when a reconnection just took place
+      Device::reconnected = true;
+      // send the reconnected status
+      Device::statusSensor.setValue(STATUS_RECONNECTED);
+      // allow mqtt to send the "reconnected" value, before changing it to "ready"
+      Device::mqtt.loop();
+      delay(250);
+      Device::statusSensor.setValue(STATUS_READY);
     }
   }
 }

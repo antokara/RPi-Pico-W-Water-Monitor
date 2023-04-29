@@ -102,7 +102,7 @@ bool PulseSensor::shouldSendGallonsCounter()
  */
 void PulseSensor::checkGallonsCounter()
 {
-    if (PulseSensor::shouldSendGallonsCounter())
+    if (PulseSensor::shouldSendGallonsCounter() && Device::isConnected())
     {
         bool send = false;
         if (PulseSensor::gallonsCounter == 0)
@@ -396,16 +396,25 @@ void PulseSensor::setup()
 
 void PulseSensor::loop()
 {
-    /**
-     * @brief only on the first loop, reset the flow to zero,
-     * in case there was a previous flow that is now invalid.
-     *
-     */
     if (PulseSensor::firstLoop)
     {
+        /**
+         * @brief only on the first loop, reset the flow to zero,
+         * in case there was a previous flow that is now invalid.
+         *
+         */
         PulseSensor::firstLoop = false;
         PulseSensor::gpmSensor.setValue(float(0.0));
         PulseSensor::gallonsSensor.setValue(float(0.0));
+    }
+    else if (Device::reconnected)
+    {
+        /**
+         * @brief only upon reconnection (the reconnect flag lasts only one loop)
+         * send the current GPM to the controller, in case for example, the flow stopped
+         * while we were disconnected, so that the controller gets this value "update"...
+         */
+        PulseSensor::gpmSensor.setValue(PulseSensor::gpm, true);
     }
 
     // update the value
