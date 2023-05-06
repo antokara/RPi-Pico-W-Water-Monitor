@@ -216,7 +216,7 @@ void Device::setupOTA()
  */
 bool Device::isConnected()
 {
-  return Device::wifiStatus != WL_CONNECTED || !Device::client.connected();
+  return Device::wifiStatus == WL_CONNECTED;
 }
 
 /**
@@ -236,7 +236,7 @@ void Device::wifiLoop()
   {
     Device::lastWifiCheck = millis();
     Device::wifiStatus = WiFi.status();
-    if (Device::isConnected())
+    if (!Device::isConnected())
     {
       WiFi.disconnect();
       Device::connectToWifi();
