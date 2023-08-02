@@ -73,7 +73,7 @@ void Switches::setup()
     Switches::waterLeakTestSwitch.onCommand(Switches::onSwitchCommand);
 
     Switches::debugSwitch.setIcon("mdi:test-tube");
-    Switches::debugSwitch.setName("Water Monitor Debug");
+    Switches::debugSwitch.setName("Debug");
     Switches::debugSwitch.onCommand(Switches::onSwitchCommand);
 }
 
