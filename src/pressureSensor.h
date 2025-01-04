@@ -53,7 +53,7 @@
  *  ADC is sampling (about +20μA), so that offset will also vary with sampling as well as operating temperature.
 
  */
-#define PRESSURE_SENSOR_PSI_CALIBRATION_MULTIPLIER 1.17
+#define PRESSURE_SENSOR_PSI_CALIBRATION_MULTIPLIER 1.22
 
 // calibration measurements after the step-down.
 // 170 @ 0 PSI 0.4v
