@@ -31,7 +31,7 @@
  * better chances of the controller receiving and processing the new flow.
  * (mostly for the stop-flow event).
  */
-#define RESEND_GPM_FREQUENCY 2000
+#define RESEND_GPM_FREQUENCY 5000
 
 /**
  * @brief how many times to resend. (0 will be no resend, just the original send)
@@ -79,7 +79,8 @@
 // (true, when greater than)
 // 10 when sensor is far
 // 28 when sensor is close
-#define IR_COUNTS_THRESHOLD 28
+// was 28. trying 10 with sensor at step 4 distance
+#define IR_COUNTS_THRESHOLD 10
 
 // minimum gallons per minute that the water meter can detect.
 // this helps us detect no-flow, by calculating a "time-out" when

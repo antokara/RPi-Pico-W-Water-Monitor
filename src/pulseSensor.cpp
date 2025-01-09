@@ -187,13 +187,27 @@ void PulseSensor::updateIrSensorActive()
         }
         else
         {
-            // otherwise, reset
+            // report how many counts we got within the IR timeout period
+            {
+#ifdef SERIAL_DEBUG
+                Serial.print("irCounts reset: ");
+                Serial.print(PulseSensor::irCounts);
+                Serial.print(", IR delta: ");
+                Serial.println(delta);
+#endif
+                if (Switches::isDebugActive)
+                {
+                    Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts reset: " + String(PulseSensor::irCounts) + ", delta: " + delta).c_str());
+                }
+            }
+
+            // reset
             PulseSensor::irCounts = 0;
             PulseSensor::fistIrTime = millis();
         }
 
         // when the IR counts have reached the threshold
-        if (PulseSensor::irCounts > IR_COUNTS_THRESHOLD)
+        if (PulseSensor::irCounts > IR_COUNTS_THRESHOLD && !PulseSensor::isIrSensorActive)
         {
             // mark our IR sensor as active
             PulseSensor::isIrSensorActive = true;
@@ -207,19 +221,6 @@ void PulseSensor::updateIrSensorActive()
             if (Switches::isDebugActive)
             {
                 Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts: " + String(PulseSensor::irCounts) + ", IR TRUE with delta: " + delta).c_str());
-            }
-        }
-        else
-        {
-#ifdef SERIAL_DEBUG
-            Serial.print("irCounts: ");
-            Serial.print(PulseSensor::irCounts);
-            Serial.print(", IR delta: ");
-            Serial.println(delta);
-#endif
-            if (Switches::isDebugActive)
-            {
-                Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts: " + String(PulseSensor::irCounts) + ", delta: " + delta).c_str());
             }
         }
     }
@@ -300,6 +301,7 @@ void PulseSensor::sendGPM(bool force = false)
     {
         PulseSensor::lastGpmSent = gpm;
         PulseSensor::lastGpmSendTime = millis();
+        // attempt to send it
         PulseSensor::gpmSensor.setValue(PulseSensor::gpm);
         // reset the resend, so that we can start resending the GPM if we want
         PulseSensor::gpmResendTimes = 0;
@@ -315,9 +317,16 @@ void PulseSensor::checkResendGPM()
 {
     if (PulseSensor::lastGpmSent == PulseSensor::gpm && PulseSensor::gpm == 0.0 && PulseSensor::gpmResendTimes < RESEND_GPM_TIMES && abs(long(millis() - PulseSensor::lastGpmResendTime)) > RESEND_GPM_FREQUENCY)
     {
-        PulseSensor::gpmResendTimes++;
+        // reset the time, so that every retry (even failed ones) have some delay between them
         PulseSensor::lastGpmResendTime = millis();
-        PulseSensor::gpmSensor.setValue(PulseSensor::gpm, true);
+        // attempt to send it
+        if (PulseSensor::gpmSensor.setValue(PulseSensor::gpm, true))
+        {
+            // increase the counter,
+            // only if the MQTT message has been published successfully
+            // otherwise, we want to keep retrying
+            PulseSensor::gpmResendTimes++;
+        }
         if (Switches::isDebugActive)
         {
             Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, "gpm resend");
