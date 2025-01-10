@@ -66,13 +66,28 @@
  */
 #define IR_DELTA_THRESHOLD 3
 
+// TODO: make those parameters dynamic
+// Note: something appears to randomly interrupt the loop, causing low count of IR
+//       even though, they probably did not really drop... Maybe Wifi reconnect?
+//       maybe we need to create a counter module that runs on its own dedicated loop/controller
+//       for truly accurate results OR find a way to perform that uninterrupted.
+
+//  with timeout:8000, delta:4, distance:4
+//  irCounts min: 9, max: 32, avg: 24.63, rounds: 41
+
+//  with timeout:8000, delta:4, distance:4
+//  irCounts min: 7, max: 39, avg: 23.51, rounds: 19
+
 // time in milliseconds that a delta lasts
 //
 // 2500 does not produce false positive flow but produces false negative flow, at low GPM
 // 3500 no false positives but false negatives only at high GPM >6
 // 5000 no false positives but intermittent false negatives, again only at high GPM >6
 // 8000 no false positives, no false negatives with >10 counts when with PC USB not external supply
-#define IR_TIMEOUT 4000
+//
+// since there's some inherit noise in the IR "module", we need to increase the "delta duration" timeout
+// in order to get a bigger sample and therefore, normalize/avg the noise...
+#define IR_TIMEOUT 10000
 
 // number of delta counts that need to happen within the timeout period
 // for the IR sensor to be considered ON (to avoid potential noise)
@@ -125,6 +140,12 @@ public:
     static bool firstLoop;
     static HASensorNumber gpmSensor;
     static HASensorNumber gallonsSensor;
+    // for debug of gpm infrared counts
+    static boolean lastIsDebugActive;
+    static unsigned int minIrCounts;
+    static unsigned int maxIrCounts;
+    static float avgIrCounts;
+    static unsigned int deltaRounds;
 
     // methods
     static bool shouldSendGallonsCounter();

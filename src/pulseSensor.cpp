@@ -83,6 +83,13 @@ HASensorNumber PulseSensor::gpmSensor("waterMonitorFlow", HASensorNumber::Precis
 // the water gallons counter sensor
 HASensorNumber PulseSensor::gallonsSensor("waterMonitorGallonsCounter", HASensorNumber::PrecisionP0);
 
+// for debug of gpm infrared counts
+boolean PulseSensor::lastIsDebugActive = false;
+unsigned int PulseSensor::minIrCounts = INT_MAX;
+unsigned int PulseSensor::maxIrCounts = 0;
+float PulseSensor::avgIrCounts = 0.0;
+unsigned int PulseSensor::deltaRounds = 0;
+
 /**
  * @brief if we should send the pressure to the controller.
  * a separate throttler to keep the unsolicited updated in lifeline prioritize the flow.
@@ -197,7 +204,22 @@ void PulseSensor::updateIrSensorActive()
 #endif
                 if (Switches::isDebugActive)
                 {
-                    Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts reset: " + String(PulseSensor::irCounts) + ", delta: " + delta).c_str());
+                    PulseSensor::deltaRounds++;
+                    if (PulseSensor::irCounts < PulseSensor::minIrCounts)
+                    {
+                        PulseSensor::minIrCounts = PulseSensor::irCounts;
+                    }
+                    if (PulseSensor::irCounts > PulseSensor::maxIrCounts)
+                    {
+                        PulseSensor::maxIrCounts = PulseSensor::irCounts;
+                    }
+                    PulseSensor::avgIrCounts = PulseSensor::avgIrCounts + PulseSensor::irCounts;
+                    if (PulseSensor::avgIrCounts > 0)
+                    {
+                        PulseSensor::avgIrCounts = PulseSensor::avgIrCounts / 2;
+                    }
+
+                    Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts reset - " + String(PulseSensor::irCounts) + ", min: " + String(PulseSensor::minIrCounts) + ", max: " + String(PulseSensor::maxIrCounts) + ", avg: " + String(PulseSensor::avgIrCounts) + ", rounds: " + String(PulseSensor::deltaRounds) + ", delta: " + String(delta)).c_str());
                 }
             }
 
@@ -516,4 +538,18 @@ void PulseSensor::loop()
 
     // check if we need to resend the GPM
     PulseSensor::checkResendGPM();
+
+    // check if the debug got toggled
+    if (Switches::isDebugActive != PulseSensor::lastIsDebugActive)
+    {
+        PulseSensor::lastIsDebugActive = Switches::isDebugActive;
+        // when enabled, reset the debug stats
+        if (Switches::isDebugActive)
+        {
+            PulseSensor::minIrCounts = INT_MAX;
+            PulseSensor::maxIrCounts = 0;
+            PulseSensor::avgIrCounts = 0.0;
+            PulseSensor::deltaRounds = 0;
+        }
+    }
 }
