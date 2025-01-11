@@ -89,6 +89,7 @@ unsigned int PulseSensor::minIrCounts = INT_MAX;
 unsigned int PulseSensor::maxIrCounts = 0;
 float PulseSensor::avgIrCounts = 0.0;
 unsigned int PulseSensor::deltaRounds = 0;
+unsigned long PulseSensor::loopCycles = 0;
 
 /**
  * @brief if we should send the pressure to the controller.
@@ -165,6 +166,11 @@ void PulseSensor::increaseGallonsCounter()
  */
 void PulseSensor::updateIrSensorActive()
 {
+    if (Switches::isDebugActive)
+    {
+        PulseSensor::loopCycles++;
+    }
+
     int irSensorValue = analogRead(IR_SENSOR_PIN); // read the input pin
     // only when the value has changed
     if (PulseSensor::prevIrValue == -1)
@@ -218,8 +224,8 @@ void PulseSensor::updateIrSensorActive()
                     {
                         PulseSensor::avgIrCounts = PulseSensor::avgIrCounts / 2;
                     }
-
-                    Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts reset - " + String(PulseSensor::irCounts) + ", min: " + String(PulseSensor::minIrCounts) + ", max: " + String(PulseSensor::maxIrCounts) + ", avg: " + String(PulseSensor::avgIrCounts) + ", rounds: " + String(PulseSensor::deltaRounds) + ", delta: " + String(delta)).c_str());
+                    Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts reset - " + String(PulseSensor::irCounts) + ", min: " + String(PulseSensor::minIrCounts) + ", max: " + String(PulseSensor::maxIrCounts) + ", avg: " + String(PulseSensor::avgIrCounts) + ", rounds: " + String(PulseSensor::deltaRounds) + ", loopCycles: " + String(PulseSensor::loopCycles)).c_str());
+                    PulseSensor::loopCycles = 0;
                 }
             }
 
@@ -242,19 +248,43 @@ void PulseSensor::updateIrSensorActive()
 #endif
             if (Switches::isDebugActive)
             {
-                Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts: " + String(PulseSensor::irCounts) + ", IR TRUE with delta: " + delta).c_str());
+                Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts IR TRUE - " + String(PulseSensor::irCounts) + ", delta: " + delta).c_str());
             }
         }
     }
-    else if (PulseSensor::isIrSensorActive && abs(long(millis() - PulseSensor::lastIrTime)) > IR_TIMEOUT)
+    else if (PulseSensor::isIrSensorActive && abs(long(millis() - PulseSensor::lastIrTime)) > IR_TIMEOUT * 2)
     {
+        //
+        // at very low flows, the Flow Indicator propeler, spins intermittently.
+        // that's because the flow falls at the threshold of the Water Meter's minimum flow detection rate
+        // which causes momentary stops of rotation of about 10 seconds at a time.
+        //
+        // therefore, in order to account for those momentary stops, we must increase the timeout
+        // above them, hence the *2 IR_TIMEOUT...
+        // the problem with that, is the prolonged time it will now take (~20 secs), to call a no-flow event.
+        //
 #ifdef SERIAL_DEBUG
         Serial.print("IR false with delta: ");
         Serial.println(abs(irSensorValue - PulseSensor::prevIrValue));
 #endif
         if (Switches::isDebugActive)
         {
-            Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts: " + String(PulseSensor::irCounts) + ", IR FALSE with delta: " + abs(irSensorValue - PulseSensor::prevIrValue)).c_str());
+            PulseSensor::deltaRounds++;
+            if (PulseSensor::irCounts < PulseSensor::minIrCounts)
+            {
+                PulseSensor::minIrCounts = PulseSensor::irCounts;
+            }
+            if (PulseSensor::irCounts > PulseSensor::maxIrCounts)
+            {
+                PulseSensor::maxIrCounts = PulseSensor::irCounts;
+            }
+            PulseSensor::avgIrCounts = PulseSensor::avgIrCounts + PulseSensor::irCounts;
+            if (PulseSensor::avgIrCounts > 0)
+            {
+                PulseSensor::avgIrCounts = PulseSensor::avgIrCounts / 2;
+            }
+            Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts IR FALSE - " + String(PulseSensor::irCounts) + ", min: " + String(PulseSensor::minIrCounts) + ", max: " + String(PulseSensor::maxIrCounts) + ", avg: " + String(PulseSensor::avgIrCounts) + ", rounds: " + String(PulseSensor::deltaRounds) + ", loopCycles: " + String(PulseSensor::loopCycles)).c_str());
+            PulseSensor::loopCycles = 0;
         }
         // when the delta is less than the threshold and
         // the timeout period has passed, only then,
@@ -377,10 +407,10 @@ bool PulseSensor::isPulseSensorActive()
 #ifdef SERIAL_DEBUG
             Serial.println("lastPulseSensorIsActive true");
 #endif
-            if (Switches::isDebugActive)
-            {
-                Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, "lastPulseSensorIsActive true");
-            }
+            // if (Switches::isDebugActive)
+            // {
+            //     Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, "lastPulseSensorIsActive true");
+            // }
 
             // only the first time, return true
             return PulseSensor::lastPulseSensorIsActive;
@@ -394,10 +424,10 @@ bool PulseSensor::isPulseSensorActive()
 #ifdef SERIAL_DEBUG
         Serial.println("lastPulseSensorIsActive false");
 #endif
-        if (Switches::isDebugActive)
-        {
-            Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, "lastPulseSensorIsActive false");
-        }
+        // if (Switches::isDebugActive)
+        // {
+        //     Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, "lastPulseSensorIsActive false");
+        // }
     }
 
     // any other time, return inactive
@@ -550,6 +580,7 @@ void PulseSensor::loop()
             PulseSensor::maxIrCounts = 0;
             PulseSensor::avgIrCounts = 0.0;
             PulseSensor::deltaRounds = 0;
+            PulseSensor::loopCycles = 0;
         }
     }
 }

@@ -146,6 +146,7 @@ public:
     static unsigned int maxIrCounts;
     static float avgIrCounts;
     static unsigned int deltaRounds;
+    static unsigned long loopCycles;
 
     // methods
     static bool shouldSendGallonsCounter();
