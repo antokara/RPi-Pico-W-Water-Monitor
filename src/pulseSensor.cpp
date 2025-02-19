@@ -260,33 +260,33 @@ void PulseSensor::updateIrSensorActive()
                 PulseSensor::fistIrTime = millis();
             }
         }
-        if (PulseSensor::isIrSensorActive && abs(long(millis() - PulseSensor::lastIrTime)) > IR_TIMEOUT_KEEP_ACTIVE)
-        {
+    }
+    if (PulseSensor::isIrSensorActive && abs(long(millis() - PulseSensor::lastIrTime)) > IR_TIMEOUT_KEEP_ACTIVE)
+    {
 #ifdef SERIAL_DEBUG
-            Serial.print("IR false with delta: ");
-            Serial.println(abs(irSensorValue - PulseSensor::prevIrValue));
+        Serial.print("IR false with delta: ");
+        Serial.println(abs(irSensorValue - PulseSensor::prevIrValue));
 #endif
-            if (Switches::isDebugActive)
+        if (Switches::isDebugActive)
+        {
+            PulseSensor::deltaRounds++;
+            if (PulseSensor::irCounts < PulseSensor::minIrCounts)
             {
-                PulseSensor::deltaRounds++;
-                if (PulseSensor::irCounts < PulseSensor::minIrCounts)
-                {
-                    PulseSensor::minIrCounts = PulseSensor::irCounts;
-                }
-                if (PulseSensor::irCounts > PulseSensor::maxIrCounts)
-                {
-                    PulseSensor::maxIrCounts = PulseSensor::irCounts;
-                }
-                PulseSensor::avgIrCounts = PulseSensor::avgIrCounts + PulseSensor::irCounts;
-                if (PulseSensor::avgIrCounts > 0)
-                {
-                    PulseSensor::avgIrCounts = PulseSensor::avgIrCounts / 2;
-                }
-                Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts IR FALSE - " + String(PulseSensor::irCounts) + ", min: " + String(PulseSensor::minIrCounts) + ", max: " + String(PulseSensor::maxIrCounts) + ", avg: " + String(PulseSensor::avgIrCounts) + ", rounds: " + String(PulseSensor::deltaRounds) + ", loopCycles: " + String(PulseSensor::loopCycles)).c_str());
-                PulseSensor::loopCycles = 0;
+                PulseSensor::minIrCounts = PulseSensor::irCounts;
             }
-            PulseSensor::isIrSensorActive = false;
+            if (PulseSensor::irCounts > PulseSensor::maxIrCounts)
+            {
+                PulseSensor::maxIrCounts = PulseSensor::irCounts;
+            }
+            PulseSensor::avgIrCounts = PulseSensor::avgIrCounts + PulseSensor::irCounts;
+            if (PulseSensor::avgIrCounts > 0)
+            {
+                PulseSensor::avgIrCounts = PulseSensor::avgIrCounts / 2;
+            }
+            Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts IR FALSE - " + String(PulseSensor::irCounts) + ", min: " + String(PulseSensor::minIrCounts) + ", max: " + String(PulseSensor::maxIrCounts) + ", avg: " + String(PulseSensor::avgIrCounts) + ", rounds: " + String(PulseSensor::deltaRounds) + ", loopCycles: " + String(PulseSensor::loopCycles)).c_str());
+            PulseSensor::loopCycles = 0;
         }
+        PulseSensor::isIrSensorActive = false;
     }
 }
 
