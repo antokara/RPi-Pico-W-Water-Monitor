@@ -78,6 +78,9 @@
 //  with timeout:8000, delta:4, distance:4
 //  irCounts min: 7, max: 39, avg: 23.51, rounds: 19
 
+//  with timeout:10000 and no-flow*3, delta:4, distance:4
+//  irCounts min: 3, max: 36, avg: 19.33, rounds: 22, loopCycles: 351448
+
 // time in milliseconds that a delta lasts
 //
 // 2500 does not produce false positive flow but produces false negative flow, at low GPM
@@ -96,6 +99,21 @@
 // 28 when sensor is close
 // was 28. trying 10 with sensor at step 4 distance
 #define IR_COUNTS_THRESHOLD 10
+
+//
+// at very low flows, the Flow Indicator propeler, spins intermittently.
+// that's because the flow falls at the threshold of the Water Meter's minimum flow detection rate
+// which causes momentary stops of rotation of about 10 seconds at a time.
+//
+// therefore, in order to account for those momentary stops, we must increase the timeout
+// above them, hence the *3 IR_TIMEOUT...
+// the downside to that, is the prolonged time it will now take (~30 secs), to call a no-flow event.
+#define IR_TIMEOUT_KEEP_ACTIVE 30000
+
+// number of delta counts that need to happen within the timeout period
+// for the IR sensor to be kept ON (to avoid false positive from noise, while already active)
+// (true, when greater than)
+#define IR_COUNTS_THRESHOLD_KEEP_ACTIVE 5
 
 // minimum gallons per minute that the water meter can detect.
 // this helps us detect no-flow, by calculating a "time-out" when
@@ -120,7 +138,7 @@ class PulseSensor
 {
 public:
     // properties
-    static boolean lastPulseSensorIsActive;
+    static bool lastPulseSensorIsActive;
     static unsigned long lastPulseTime;
     static unsigned long prevTimePassedSinceLastPulse;
     static float gpm;
@@ -141,7 +159,7 @@ public:
     static HASensorNumber gpmSensor;
     static HASensorNumber gallonsSensor;
     // for debug of gpm infrared counts
-    static boolean lastIsDebugActive;
+    static bool lastIsDebugActive;
     static unsigned int minIrCounts;
     static unsigned int maxIrCounts;
     static float avgIrCounts;
