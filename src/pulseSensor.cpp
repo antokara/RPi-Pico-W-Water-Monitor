@@ -84,12 +84,13 @@ HASensorNumber PulseSensor::gpmSensor("waterMonitorFlow", HASensorNumber::Precis
 HASensorNumber PulseSensor::gallonsSensor("waterMonitorGallonsCounter", HASensorNumber::PrecisionP0);
 
 // for debug of gpm infrared counts
-boolean PulseSensor::lastIsDebugActive = false;
+bool PulseSensor::lastIsDebugActive = false;
 unsigned int PulseSensor::minIrCounts = INT_MAX;
 unsigned int PulseSensor::maxIrCounts = 0;
 float PulseSensor::avgIrCounts = 0.0;
 unsigned int PulseSensor::deltaRounds = 0;
 unsigned long PulseSensor::loopCycles = 0;
+bool PulseSensor::activeCountsReported = false;
 
 /**
  * @brief if we should send the pressure to the controller.
@@ -175,6 +176,9 @@ void PulseSensor::updateIrSensorActive()
     // read the input pin
     int irValue = analogRead(IR_SENSOR_PIN);
 
+    // time passed since "first" IR delta
+    unsigned long timePassedSinceFirstIr = abs(long(millis() - PulseSensor::fistIrTime));
+
     // only when the value has changed
     if (PulseSensor::prevIrValue == -1)
     {
@@ -184,85 +188,46 @@ void PulseSensor::updateIrSensorActive()
     }
     else if (abs(irValue - PulseSensor::prevIrValue) > IR_DELTA_THRESHOLD)
     {
-        // keep for debug, before we change the prevIrValue
-        int delta = abs(irValue - prevIrValue);
-
         // keep the last value
         PulseSensor::prevIrValue = irValue;
 
-        // when the time since the first IR delta
-        // is less than the timeout
-        unsigned long timePassed = abs(long(millis() - PulseSensor::fistIrTime));
-        if (timePassed <= IR_TIMEOUT || PulseSensor::isIrSensorActive && timePassed <= IR_TIMEOUT_KEEP_ACTIVE)
+        // increase the counter
+        PulseSensor::irCounts++;
+
+        // when the IR counts have reached the threshold
+        if (!PulseSensor::isIrSensorActive && PulseSensor::irCounts > IR_COUNTS_THRESHOLD)
         {
-            // increase the counter
-            PulseSensor::irCounts++;
+            // mark our IR sensor as active
+            PulseSensor::isIrSensorActive = true;
 
-            // when the IR counts have reached the threshold
-            if (!PulseSensor::isIrSensorActive && PulseSensor::irCounts > IR_COUNTS_THRESHOLD)
-            {
-                // mark our IR sensor as active
-                PulseSensor::isIrSensorActive = true;
-
-                // keep the time the active started
-                PulseSensor::lastIrTime = millis();
-
-#ifdef SERIAL_DEBUG
-                Serial.print("irCounts: ");
-                Serial.print(PulseSensor::irCounts);
-                Serial.print(", IR true with delta: ");
-                Serial.println(delta);
-#endif
-                if (Switches::isDebugActive)
-                {
-                    Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts IR TRUE - " + String(PulseSensor::irCounts) + ", delta: " + delta).c_str());
-                }
-            }
-            else if (PulseSensor::isIrSensorActive && PulseSensor::irCounts > IR_COUNTS_THRESHOLD_KEEP_ACTIVE)
-            {
-                // refresh the time the active started
-                PulseSensor::lastIrTime = millis();
-            }
+            // keep the time the active started
+            PulseSensor::lastIrTime = millis();
         }
-        else
+        else if (PulseSensor::isIrSensorActive && PulseSensor::irCounts > IR_COUNTS_THRESHOLD_KEEP_ACTIVE)
         {
-            // reset
-
-            // report how many counts we got within the IR timeout period
-            {
-#ifdef SERIAL_DEBUG
-                Serial.print("irCounts reset: ");
-                Serial.print(PulseSensor::irCounts);
-                Serial.print(", IR delta: ");
-                Serial.println(delta);
-#endif
-                if (Switches::isDebugActive)
-                {
-                    PulseSensor::deltaRounds++;
-                    if (PulseSensor::irCounts < PulseSensor::minIrCounts)
-                    {
-                        PulseSensor::minIrCounts = PulseSensor::irCounts;
-                    }
-                    if (PulseSensor::irCounts > PulseSensor::maxIrCounts)
-                    {
-                        PulseSensor::maxIrCounts = PulseSensor::irCounts;
-                    }
-                    PulseSensor::avgIrCounts = PulseSensor::avgIrCounts + PulseSensor::irCounts;
-                    if (PulseSensor::avgIrCounts > 0)
-                    {
-                        PulseSensor::avgIrCounts = PulseSensor::avgIrCounts / 2;
-                    }
-                    Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts reset - " + String(PulseSensor::irCounts) + ", min: " + String(PulseSensor::minIrCounts) + ", max: " + String(PulseSensor::maxIrCounts) + ", avg: " + String(PulseSensor::avgIrCounts) + ", rounds: " + String(PulseSensor::deltaRounds) + ", loopCycles: " + String(PulseSensor::loopCycles)).c_str());
-                    PulseSensor::loopCycles = 0;
-                }
-
-                PulseSensor::irCounts = 0;
-                PulseSensor::fistIrTime = millis();
-            }
+            // refresh the time the active started
+            PulseSensor::lastIrTime = millis();
         }
     }
+
+    // check to report the counts that triggered the active flow
+    if (!PulseSensor::activeCountsReported && PulseSensor::isIrSensorActive && timePassedSinceFirstIr > IR_TIMEOUT)
+    {
+        PulseSensor::activeCountsReported = true;
+#ifdef SERIAL_DEBUG
+        Serial.print("irCounts: ");
+        Serial.println(PulseSensor::irCounts);
+#endif
+        if (Switches::isDebugActive)
+        {
+            Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts IR TRUE - " + String(PulseSensor::irCounts)).c_str());
+        }
+    }
+
+    // check for time outs (either during inactive or active)
     if (PulseSensor::isIrSensorActive && abs(long(millis() - PulseSensor::lastIrTime)) > IR_TIMEOUT_KEEP_ACTIVE)
     {
+        // timed out. switch to inactive
 #ifdef SERIAL_DEBUG
         Serial.print("IR false with delta: ");
         Serial.println(abs(irSensorValue - PulseSensor::prevIrValue));
@@ -287,6 +252,46 @@ void PulseSensor::updateIrSensorActive()
             PulseSensor::loopCycles = 0;
         }
         PulseSensor::isIrSensorActive = false;
+        PulseSensor::activeCountsReported = false;
+    }
+    else if ((!PulseSensor::isIrSensorActive && timePassedSinceFirstIr > IR_TIMEOUT) || (PulseSensor::isIrSensorActive && timePassedSinceFirstIr > IR_TIMEOUT_KEEP_ACTIVE))
+    {
+        // reset the count, when:
+        //  - inactive and timed out OR
+        //  - active and keep active, timed out
+        // to prevent increasing counter indefinitely... (to the point that it crosses the threshold for flow)
+
+        // report how many counts we got within this period
+        {
+#ifdef SERIAL_DEBUG
+            Serial.print("irCounts reset: ");
+            Serial.print(PulseSensor::irCounts);
+            Serial.print(", IR delta: ");
+            Serial.println(delta);
+#endif
+            if (Switches::isDebugActive)
+            {
+                PulseSensor::deltaRounds++;
+                if (PulseSensor::irCounts < PulseSensor::minIrCounts)
+                {
+                    PulseSensor::minIrCounts = PulseSensor::irCounts;
+                }
+                if (PulseSensor::irCounts > PulseSensor::maxIrCounts)
+                {
+                    PulseSensor::maxIrCounts = PulseSensor::irCounts;
+                }
+                PulseSensor::avgIrCounts = PulseSensor::avgIrCounts + PulseSensor::irCounts;
+                if (PulseSensor::avgIrCounts > 0)
+                {
+                    PulseSensor::avgIrCounts = PulseSensor::avgIrCounts / 2;
+                }
+                Device::mqtt.publish(PULSE_SENSOR_DEBUG_MQTT_TOPIC, String("irCounts reset - " + String(PulseSensor::irCounts) + ", min: " + String(PulseSensor::minIrCounts) + ", max: " + String(PulseSensor::maxIrCounts) + ", avg: " + String(PulseSensor::avgIrCounts) + ", rounds: " + String(PulseSensor::deltaRounds) + ", loopCycles: " + String(PulseSensor::loopCycles)).c_str());
+                PulseSensor::loopCycles = 0;
+            }
+
+            PulseSensor::irCounts = 0;
+            PulseSensor::fistIrTime = millis();
+        }
     }
 }
 

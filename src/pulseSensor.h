@@ -98,7 +98,7 @@
 // 10 when sensor is far
 // 28 when sensor is close
 // was 28. trying 10 with sensor at step 4 distance
-#define IR_COUNTS_THRESHOLD 10
+#define IR_COUNTS_THRESHOLD 11
 
 //
 // at very low flows, the Flow Indicator propeler, spins intermittently.
@@ -165,6 +165,7 @@ public:
     static float avgIrCounts;
     static unsigned int deltaRounds;
     static unsigned long loopCycles;
+    static bool activeCountsReported;
 
     // methods
     static bool shouldSendGallonsCounter();
