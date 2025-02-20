@@ -72,22 +72,6 @@
 //       maybe we need to create a counter module that runs on its own dedicated loop/controller
 //       for truly accurate results OR find a way to perform that uninterrupted.
 
-//  with timeout:8000, delta:4, distance:4
-//  irCounts min: 9, max: 32, avg: 24.63, rounds: 41
-
-//  with timeout:8000, delta:4, distance:4
-//  irCounts min: 7, max: 39, avg: 23.51, rounds: 19
-
-//  with timeout:10000 and no-flow*3, delta:4, distance:4
-//  irCounts min: 3, max: 36, avg: 19.33, rounds: 22, loopCycles: 351448
-
-// time in milliseconds that a delta lasts
-//
-// 2500 does not produce false positive flow but produces false negative flow, at low GPM
-// 3500 no false positives but false negatives only at high GPM >6
-// 5000 no false positives but intermittent false negatives, again only at high GPM >6
-// 8000 no false positives, no false negatives with >10 counts when with PC USB not external supply
-//
 // since there's some inherit noise in the IR "module", we need to increase the "delta duration" timeout
 // in order to get a bigger sample and therefore, normalize/avg the noise...
 #define IR_TIMEOUT 10000
@@ -95,10 +79,8 @@
 // number of delta counts that need to happen within the timeout period
 // for the IR sensor to be considered ON (to avoid potential noise)
 // (true, when greater than)
-// 10 when sensor is far
-// 28 when sensor is close
-// was 28. trying 10 with sensor at step 4 distance
-#define IR_COUNTS_THRESHOLD 11
+// 50 with sensor at step 4 distance
+#define IR_COUNTS_THRESHOLD 50
 
 //
 // at very low flows, the Flow Indicator propeler, spins intermittently.
@@ -113,7 +95,7 @@
 // number of delta counts that need to happen within the timeout period
 // for the IR sensor to be kept ON (to avoid false positive from noise, while already active)
 // (true, when greater than)
-#define IR_COUNTS_THRESHOLD_KEEP_ACTIVE 5
+#define IR_COUNTS_THRESHOLD_KEEP_ACTIVE 90
 
 // minimum gallons per minute that the water meter can detect.
 // this helps us detect no-flow, by calculating a "time-out" when
